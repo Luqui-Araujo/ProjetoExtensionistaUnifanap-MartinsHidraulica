@@ -1,0 +1,260 @@
+﻿@model Cliente
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+
+@{
+    ViewBag.Title = "Clientes";
+    Layout = "_Layout";
+    var token = Antiforgery.GetAndStoreTokens(Context).RequestToken;
+}
+
+<h3 class="mt-3 mb-3 text-center" style="font-weight: bold">Lista de Clientes</h3>
+<div class="row d-flex justify-content-center text-center mb-2">
+    <div class="col-auto">
+        <button type="button" class="btn btn-primary mb-3"
+                data-bs-toggle="modal"
+                data-bs-target="#modalCadastrarCliente"
+                title="Adicionar Usuário">
+            <i class="fas fa-plus"></i>
+        </button>
+    </div>
+    <div class="col-6">
+        <input type="text" id="searchInput" class="form-control" placeholder="Buscar Clientes..."/>
+    </div>
+    <div class="col-auto">
+        <button type="button" class="btn btn-success"
+                onclick="carregarClientesAtivos()"
+                title="Clientes Ativos">
+            <i class="fas fa-address-book"></i>
+        </button>
+        <button type="button" class="btn btn-danger"
+                onclick="carregarClientesInativos()"
+                title="Clientes Inativos">
+            <i class="fas fa-address-book"></i>
+        </button>
+    </div>
+</div>
+
+<!-- Modal cadastro de clientes -->
+<div class="modal fade" id="modalCadastrarCliente" tabindex="-1" aria-labelledby="modalCadastrarClienteLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="criarClienteForm" action="/ManterClientes/RegistrarCliente" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editarCliente">Adicionar novo cliente</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        
+                        <div class="col-6 mb-3">
+                            <label for="nome" class="form-label">Nome:</label>
+                            <input type="text" class="form-control" id="nome" name="Nome" required>
+                        </div>
+                        
+                        <div class="col-6 mb-3">
+                            <label for="telefone" class="form-label">Telefone</label>
+                            <input type="text" class="form-control" id="telefone" name="Telefone">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label for="email" class="form-label">E-mail:</label>
+                            <input type="text" class="form-control" id="email" name="Email">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        
+                        <div class="col-6 mb-3">
+                            <label for="cpfCnpj" class="form-label">CPF / CNPJ:</label>
+                            <input type="text" class="form-control" id="cpfCnpj" name="CpfCnpj">
+                        </div>
+                        
+                        <div class="col-6 mb-3">
+                            <label for="inscricaoEstadual" class="form-label">Inscrição Estadual:</label>
+                            <input type="text" class="form-control" id="inscricaoEstadual" name="InscricaoEstadual">
+                        </div>
+                        
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label for="endereco" class="form-label">Endereço:</label>
+                            <input type="text" class="form-control" id="endereco" name="Endereco">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        
+                        <div class="col-6 mb-3">
+                            <label for="cep" class="form-label">CEP:</label>
+                            <input type="text" class="form-control" id="cep" name="Cep">
+                        </div>
+
+                        <div class="col-6 mb-3">
+                            <label for="bairro" class="form-label">Bairro:</label>
+                            <input type="text" class="form-control" id="bairro" name="Bairro">
+                        </div>
+
+                    </div>
+                    
+                    <div class="row">
+                        
+                        <div class="col-6 mb-3">
+                            <label for="cidade" class="form-label">Cidade</label>
+                            <input type="text" class="form-control" id="cidade" name="Cidade">
+                        </div>
+
+                        <div class="col-6 mb-3">
+                            <label for="estado" class="form-label">Estado:</label>
+                            <input type="text" class="form-control" id="estado" name="Estado">
+                        </div>
+
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="tipoCliente" class="form-label">Tipo de Cliente</label>
+                        <select class="form-select" id="tipoCliente" name="TipoCliente" required>
+                            <option value="Pessoa Física">Pessoa Física</option>
+                            <option value="Pessoa Jurídica">Pessoa Jurídica</option>
+                        </select>
+                    </div>
+                    
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Salvar Cliente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!--Tabela de clientes-->
+<table class="table table-striped text-center table-hover">
+    <thead>
+    <tr class="row">
+        <th class="col-6">Nome</th>
+        <th class="col-4">CPF/CNPJ</th>
+        <th class="col-2">Ações</th>
+    </tr>
+    </thead>
+    <tbody id="resultsBody" class="table-secondary">
+    
+    </tbody>
+</table>
+
+@section Scripts
+{
+    <script>
+        var antiForgeryToken = '@token';
+        
+        //Preencher a tabela com os clientes
+        function preencherTabela(clientes) {
+            var tbody = $('#resultsBody');
+            tbody.empty();
+            
+            clientes.forEach(function (cliente) {
+                var row = `
+                    <tr class="row">
+                        <td class="col-6">${cliente.nome}</td>
+                        <td class="col-4">${cliente.cpfCnpj || ""}</td>
+                        <td class="col-2">
+                            ${cliente.ativo ? `
+                                <button type="button" class="btn btn-sm btn-secondary editarUsuario"
+                                    data-id="${cliente.id}"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalEditarCliente"
+                                    title="Editar">
+                                    <i class="fas fa-pencil"></i>
+                                </button>
+                                 <button type="submit" class="btn btn-sm btn-danger"
+                                    onclick="InativarCliente('${cliente.id}')"
+                                    title="Inativar">
+                                    <i class="fas fa-minus"></i>
+                                 </button>   
+                            
+                            `:`
+                                 <!-- Botões para inativos -->
+                                 <button type="submit" class="btn btn-sm btn-success"
+                                    onclick="ReativarCliente('${cliente.id}')"
+                                    title="Reativar">
+                                    <i class="fas fa-check"></i>
+                                 </button>
+                            `}
+                        </td>
+                    </tr>
+                `;
+                tbody.append(row);
+            });
+        }
+        
+        //Carregar clientes ativos
+        function carregarClientesAtivos(){
+            $.ajax({
+                url: '/ManterClientes/ListarClientesAtivos',
+                type: 'GET',
+                success: function (clientes) {
+                    clientesCarregados = clientes;
+                    preencherTabela(clientes);
+                }
+            })
+        }
+        
+        //Carregar clientes inativos
+        function carregarClientesInativos(){
+            $.ajax({
+                url: '/ManterClientes/ListarClientesInativos',
+                type: 'GET',
+                success: function (clientes) {
+                    clientesCarregados = clientes;
+                    preencherTabela(clientes);
+                }
+            })    
+        }
+        
+        //Registro de novos clientes 
+        $('#modalCadastrarCliente').on('submit', function (e) {
+            e.preventDefault();
+
+            $.ajax({
+                url: $(this).attr('action'),
+                type: 'POST',
+                data: $(this).serialize(),
+                success: function (response) {
+                    if (response.success) {
+                        toastr.success('Cliente cadastrado com sucesso!');
+                        $('#modalCadastroCliente').modal('hide');
+                        carregarClientesAtivos();
+                        window.location.href = response.redirectUrl; // Recarrega a página
+                    } else {
+                        // Exibe erros no modal
+                        var errorList = $('<ul class="text-danger"></ul>');
+                        if (Array.isArray(response.message)) {
+                            response.message.forEach(function(message) {
+                                errorList.append($('<li></li>').text(message));
+                            });
+                        } else {
+                            errorList.append($('<li></li>').text(response.message)); // Trata como string única
+                        }
+                        $('#errorContainer').html(errorList);
+                    }
+                },
+                error: function () {
+                    alert('Ocorreu um erro ao processar a requisição.');
+                }
+            });
+        });
+        
+        var clientesCarregados = [];
+        
+        $(document).ready(function () {
+            carregarClientesAtivos();
+        });
+    
+    
+    
+    </script>
+}

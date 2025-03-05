@@ -1,0 +1,71 @@
+﻿
+@{
+    ViewBag.Title = "Login";
+    Layout = "_LayoutLogin";
+}
+
+<div class="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg">
+    <img class="mx-auto block" src="/Assets/logo_no_background.png" alt="Logo Martins Hidraulica"/>
+    <h2 class="text-2xl font-bold text-[#142494] text-center mb-6">Bem-vindo de volta!</h2>
+    <form asp-action="Autenticar" method="POST" class="space-y-4" id="loginForm">
+        @*Se a senha estiver errada avisa o usuário com um tempdata*@
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="text-red-600 text-center mb-4">
+                @TempData["ErrorMessage"]
+            </div>
+        }
+        
+        <div>
+            <label class="block font-bold text-md font-medium text-gray-700">E-mail</label>
+            <input type="email" name="email" id="email" 
+                   class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#04ac4c] focus:boder-[#04ac4c]">
+        </div>
+
+        <div>
+            <label class="block font-bold text-md font-medium text-gray-700">Senha</label>
+            <input type="password" name="senha" id="senha" 
+                   class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#04ac4c] focus:boder-[#04ac4c]">
+        </div>
+
+        <button type="submit"
+                class="mx-auto block w-80 bg-[#04ac4c] hover:bg-[#142494] text-white font-semibold py-3 rounded-md transition-all duration-300">
+            Entrar
+        </button>
+
+    </form>
+</div>
+
+<script>
+    document.getElementById("loginForm").addEventListener("submit", function (event) {
+        
+        let email = document.getElementById("email").value.trim();
+        let senha = document.getElementById("senha").value.trim();
+        let emailRegex = /^[^@@\s]+@@[^@@\s]+\.[^@@\s]+$/; // Expressão para validar e-mails
+        
+        if (!email || !senha) {
+            event.preventDefault();
+            toastr.error("Preencha o e-mail e a senha!");
+            return;
+        }
+
+        if (!email) {
+            event.preventDefault();
+            toastr.error("Por favor, preencha o e-mail!");
+            return;
+        }
+
+        if (!emailRegex.test(email)) {
+            event.preventDefault();
+            toastr.error("Digite um e-mail válido!");
+            return;
+        }
+
+        if (!senha) {
+            event.preventDefault();
+            toastr.error("Por favor, preencha a senha!");
+            return;
+        }
+        
+    })
+</script>

@@ -1,0 +1,119 @@
+@import url('https://fonts.googleapis.com/css2?family=Geo:ital@0;1&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
+html {
+  font-size: 14px;
+}
+
+body {
+  font-family: "Roboto", sans-serif;
+  font-style: normal;
+}
+
+:root {
+  --navbar1: #baffbb;
+  --navbar2: #ffffff;
+  --primaria: #04ac4c;
+  --destaques: #459cba;
+  --secundaria: #142494;
+  --apagada: #aa6794;
+  --outros: #a8d9cc;
+  --Primeira: #142494;
+  --Segunda: #3c7ec9;
+  --Terceira: #3adc98;
+  --6: #0a1ba3;
+  --5: #1d30b5;
+  --4: #3549d8;
+  --3: #7383fa;
+  --2: #92a0fb;
+  --1: #bdc4fb;
+}
+
+.gradiente-personalizado-navbar {
+  background: linear-gradient(
+    0deg,
+    var(--navbar1),
+    var(--navbar2)
+    
+  );
+}
+
+.gradiente-personalizado-navbar-cima {
+  background: linear-gradient(
+          90deg,
+          var(--navbar2),
+          var(--navbar1)
+  );
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 18px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+.nav p {
+  color: var(--destaques);
+  font-weight: 600;
+  margin-top: 5px;
+}
+
+.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+  color: var(--bs-secondary-color);
+  text-align: end;
+}
+
+.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+  text-align: start;
+}
+
+.form-label {
+  margin-top: 1rem;
+}
+
+#orcamentoModal .modal-body {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+#orcamentosModal table {
+  font-size: 0.9em;
+}
+
+#searchOrcamentos {
+  margin-bottom: 15px;
+  max-width: 300px;
+}
+
+#listaOrcamentos {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+#inscricaoEstadualField:disabled {
+  background-color: #c7c7c7;
+}
+
+input {
+  border: 1px solid var(--primaria) !important;
+}
+
+select {
+  border: 1px solid var(--primaria) !important;
+}
+
+textarea {
+  border: 1px solid var(--primaria) !important;
+}

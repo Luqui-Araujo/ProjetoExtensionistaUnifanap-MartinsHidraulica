@@ -1,0 +1,382 @@
+﻿@model Usuarios
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+
+@{
+    ViewBag.Title = "Usuários";
+    Layout = "_Layout";
+    //Gera e armazena o token para poder usar no JavaScript
+    var token = Antiforgery.GetAndStoreTokens(Context).RequestToken;
+}
+
+<h3 class="mt-3 mb-3 text-center" style="font-weight: bold">Lista de usuários</h3>
+<div class="row d-flex justify-content-center text-center mb-2">
+    <div class="col-auto">
+        <button type="button" class="btn btn-primary mb-3" 
+                data-bs-toggle="modal" 
+                data-bs-target="#modalCadastroUsuario"
+                title="Adicionar Usuário">   
+            <i class="fas fa-plus"></i>
+        </button>
+    </div>
+    <div class="col-6">
+        <input type="text" id="searchInput" class="form-control" placeholder="Buscar Usuários..."
+               style="border: 1px solid var(--primaria)"/>
+    </div>
+    <div class="col-auto">
+        <button type="button" class="btn btn-success" 
+                onclick="carregarUsuariosAtivos()"
+                title="Usuários Ativos">
+            <i class="fas fa-user"></i>
+        </button>
+        
+        <button type="button" class="btn btn-danger" 
+                onclick="carregarUsuariosInativos()"
+                title="Usuários Inativos">
+            <i class="fas fa-user"></i>
+        </button>
+    </div>
+</div>
+
+<table class="table table-striped text-center table-hover">
+    <thead>
+    <tr class="row">
+        <th class="col-4">Nome</th>
+        <th class="col-2">E-mail</th>
+        <th class="col-2">Departamento</th>
+        <th class="col-2">Tipo Usuário</th>
+        <th class="col-2">Ações</th>
+    </tr>
+    </thead>
+    <tbody id="resultsBody" class="table-secondary">
+    
+    </tbody>
+</table>
+
+<!-- Modal de Cadastro -->
+<div class="modal fade" id="modalCadastroUsuario" tabindex="-1" aria-labelledby="modalCadastroUsuarioLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCadastroUsuarioLabel">Cadastrar Novo Usuário</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formRegistrar" asp-action="Registrar" method="POST">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Nome" class="form-label">Nome</label>
+                        <input asp-for="Nome" type="text" class="form-control"/>
+                        <span asp-validation-for="UserName" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label">E-mail</label>
+                        <input asp-for="Email" class="form-control"/>
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="senha" class="form-label">Senha</label>
+                        <input type="password" name="senha" class="form-control"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Departamento" class="form-label">Departamento</label>
+                        <select asp-for="Departamento" class="form-select departamentoSelect">
+                            
+                        </select>
+                        <span asp-validation-for="Departamento" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="TipoUsuario" class="form-label">Tipo de Usuário</label>
+                        <select asp-for="TipoUsuario" class="form-select">
+                            <option value="">Selecione...</option>
+                            <option value="Administrador">Administrador</option>
+                            <option value="Funcionario">Funcionário</option>
+                        </select>
+                        <span asp-validation-for="TipoUsuario" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Edição de usuários -->
+<div class="modal fade" id="editarUsuarioModal" tabindex="-1" aria-labelledby="editarUsuarioLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editarUsuarioForm" action="/ManterUsuarios/Editar" method="POST">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editarUsuario">Editar Usuário</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nome" class="form-label">Nome</label>
+                        <input type="text" class="form-control" id="nome" name="nome" required/>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">E-mail</label>
+                        <input type="text" class="form-control" id="email" name="email" required/>
+                    </div>
+                    <div class="mb-3">
+                        <label for="departamento" class="form-label">Departamento</label>
+                        <select class="form-select departamentoSelect" name="departamento" required>
+       
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="tipoUsuario" class="form-label">Departamento</label>
+                        <select class="form-select" id="tipoUsuario" name="tipoUsuario" required>
+                            <option value="">Selecionar...</option>
+                            <option value="Administrador">Administrador</option>
+                            <option value="Funcionario">Funcionario</option>
+                        </select>
+                    </div>
+                    <input type="hidden" id="idUsuario" name="Id"/>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        //Token Antiforgerykey
+        var antiForgeryToken = '@token';
+        
+        //Carregar a tabela de usuários
+        // Função genérica para preencher a tabela
+        function preencherTabela(usuarios) {
+            var tbody = $('#resultsBody');
+            tbody.empty();
+
+            usuarios.forEach(function(usuario) {
+                var row = `
+            <tr class="row">
+                <td class="col-4">${usuario.nome}</td>
+                <td class="col-2">${usuario.email}</td>
+                <td class="col-2">${usuario.departamento}</td>
+                <td class="col-2">${usuario.tipoUsuario}</td>
+                <td class="col-2">
+                    ${usuario.ativo ? `
+                        <!-- Botões para ativos -->
+                        <button type="button" class="btn btn-sm btn-secondary editarUsuario" 
+                            data-id="${usuario.id}" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#editarUsuarioModal"
+                            title="Editar">
+                            <i class="fas fa-pencil"></i>
+                        </button>
+                        <button type="submit" class="btn btn-sm btn-danger"
+                             onclick="InativarUsuario('${usuario.id}')"
+                             title="Inativar">
+                             <i class="fas fa-minus"></i>
+                        </button>
+                    ` : `      
+                        <!-- Botões para inativos -->
+                        <button type="submit" class="btn btn-sm btn-success"
+                             onclick="ReativarUsuario('${usuario.id}')"
+                             title="Reativar">
+                             <i class="fas fa-check"></i>
+                        </button>
+                    `} 
+                </td>
+            </tr>
+        `;
+                tbody.append(row);
+            });
+        }
+        
+        //Carregar os usuários ativos
+        function carregarUsuariosAtivos() {
+            $.ajax({
+                url: '/ManterUsuarios/ListarAtivos',
+                type: 'GET',
+                success: function(usuarios) {
+                    usuariosCarregados = usuarios;
+                    preencherTabela(usuarios);
+                },
+                error: function (xhr, status, error) {
+                    console.log(xhr.responseText); // Exibir detalhes do erro no console
+                }
+            })
+        }
+        
+        //Carregar os usuários inativos
+        function carregarUsuariosInativos() {
+            $.ajax({
+                url: '/ManterUsuarios/ListarInativos',
+                type: 'GET',
+                success: function(usuarios) {
+                    usuariosCarregados = usuarios;
+                    preencherTabela(usuarios);
+                }
+            })
+        }
+        
+        //Carregar os departamentos cadastrados na edição
+        function carregarDepartamentos() {
+            $.ajax({
+                url: '/ManterUsuarios/ObterDepartamentos',
+                type: 'GET',
+                dataType: 'json',
+                success: function(departamentos) {
+                    var select = $('.departamentoSelect');
+                    select.empty();
+                    select.append('<option value="">Selecione...</option>');
+                    if (departamentos && departamentos.length > 0) {
+                        departamentos.forEach(function (depto) {
+                            select.append('<option value="' + depto.nomeDepartamento + '">' + depto.nomeDepartamento + '</option>');
+                        });
+                    } else {
+                        toastr.info("Nenhum departamento encontrado");
+                    }
+                },
+                error: function () {
+                    toastr.error("Erro ao buscar os departamentos");
+                }
+            })
+        }
+
+        // Variável para armazenar os usuários carregados
+        var usuariosCarregados = [];
+        
+        //Lista de usuários cadastrados no sistema
+        $(document).ready(function () {
+            carregarUsuariosAtivos();
+            
+            //Evento de pesquisa
+            $('#searchInput').on('input', function () {
+                var termo = $(this).val().toLowerCase();
+                filtrarUsuarios(termo);
+            });
+            
+            //Função para filtrar os usuários
+            function filtrarUsuarios(termo) {
+                var usuariosFiltrados = usuariosCarregados.filter(function (usuario) {
+                    return (
+                        usuario.nome.toLowerCase().includes(termo) ||
+                        usuario.email.toLowerCase().includes(termo) ||
+                        usuario.departamento.toLowerCase().includes(termo) ||
+                        usuario.tipoUsuario.toLowerCase().includes(termo)
+                    );
+                });
+                preencherTabela(usuariosFiltrados); // Atualiza a tabela com os usuários filtrados
+            }
+            
+            //Registro de novos usuários
+            $('#formRegistrar').on('submit', function (e) {
+                e.preventDefault();
+
+                $.ajax({
+                    url: $(this).attr('action'),
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    success: function (response) {
+                        if (response.success) {
+                            toastr.success('Usuário cadastrado com sucesso!');
+                            $('#modalCadastroUsuario').modal('hide');
+                            carregarUsuariosAtivos();
+                            window.location.href = response.redirectUrl; // Recarrega a página
+                        } else {
+                            // Exibe erros no modal
+                            var errorList = $('<ul class="text-danger"></ul>');
+                            response.errors.forEach(function(error) {
+                                errorList.append($('<li></li>').text(error));
+                            })
+                            $('#errorContainer').html(errorList);
+                        }
+                    },
+                    error: function () {
+                        alert('Ocorreu um erro ao processar a requisição.');
+                    }
+                });
+            });
+            
+        })
+        
+        //Abrir o modal e preencher os campos
+        $(document).on('click', '.editarUsuario', function () {
+            var usuario = $(this).data('id');
+            
+            //Busca os dados pela linha da tabela
+            var row = $(this).closest('tr');
+            var nome = row.find('td:eq(0)').text();
+            var email = row.find('td:eq(1)').text();
+            var departamento = row.find('td:eq(2)').text();
+            var tipoUsuario = row.find('td:eq(3)').text();
+            
+            //Preenche os campos do modal
+            $('#editarUsuarioModal input[name="nome"]').val(nome);
+            $('#editarUsuarioModal input[name="email"]').val(email);
+            $('#editarUsuarioModal select[name="departamento"]').val(departamento);
+            $('#editarUsuarioModal select[name="tipoUsuario"]').val(tipoUsuario);
+            $('#editarUsuarioModal input[name="Id"]').val(usuario);
+        });
+        
+        //Quando abrir o modal de edição carregar os departamentos
+        $('#editarUsuarioModal').on('show.bs.modal', function () {
+            carregarDepartamentos();
+        })
+        
+        //Quando abrir o modal de adicionar usuário carregar os departamentos
+        $('#modalCadastroUsuario').on('show.bs.modal', function () {
+          carregarDepartamentos();  
+        })
+        
+
+        //Inativar usuários
+        function InativarUsuario(id) {
+            $.ajax({
+                url: '/ManterUsuarios/Inativar',
+                type: 'POST',
+                data: {
+                    __RequestVerificationToken: antiForgeryToken, //Envio do token
+                    id: id
+                },
+                success: function() {
+                    toastr.success('Usuário inativado com sucesso!');
+                    carregarUsuariosAtivos();
+                },
+                error: function () {
+                    alert('Ocorreu um erro ao inativar o usuário, contate o administrador!');
+                }
+            });
+        }
+
+        //Reativar usuários inativos
+        function ReativarUsuario(id) {
+            $.ajax({
+                url: '/ManterUsuarios/Reativar',
+                type: 'POST',
+                data: {
+                    __RequestVerificationToken: antiForgeryToken,
+                    id: id
+                },
+                success: function() {
+                    toastr.success('Usuário reativado!')
+                    carregarUsuariosInativos();
+                },
+                error: function () {
+                    alert('Ocorreu um erro ao reativar o usuário, contate o administrador!');
+                }
+            })
+        }
+        
+
+    </script>
+}

@@ -1,0 +1,548 @@
+﻿
+@{
+    ViewBag.Title = "Empresa";
+    Layout = "_Layout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+    <div>
+        <a href="Configuracoes" class="btn btn-warning">
+            <i class="fas fa-chevron-left fa-2x"></i>
+        </a>
+    </div>
+    
+    <div class="flex-grow-1 text-center">
+        <h3 style="font-weight: bold">Minha Empresa</h3>
+    </div>
+    
+    @if (!(ViewBag.TemEmpresa as bool? ?? false))
+    {
+        <div>
+            <button class="btn btn-lg btn-primary adicionarEmpresa" type="button"
+                    title="Adicionar Empresa" 
+                    data-bs-toggle="modal"
+                    data-bs-target="#adicionarEmpresa">
+                <i class="fas fa-plus"></i>
+        </button>
+        </div>
+    }
+</div>
+
+<!-- Modal Adicionar Empresa -->
+<div class="modal fade" id="adicionarEmpresa" 
+     tabindex="-1" aria-labelledby="adicionarEmpresa" 
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="adicionarEmpresaForm" action="/ManterConfiguracoes/AdicionarEmpresa"
+                  method="POST"
+                  enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                
+                <div class="modal-header">
+                    <h5 class="modal-title" id="adicionarEmpresa">Adicionar Nova Empresa</h5>
+                    <button type="button" class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close">
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nomeEmpresa" class="form-label">Nome Empresa:</label>
+                        <input type="text" class="form-control" id="nomeEmpresa" name="NomeEmpresa" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="razaoSocial" class="form-label">Razão Social:</label>
+                        <input type="text" class="form-control" id="razaoSocial" name="RazaoSocial" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cnpj" class="form-label">CNPJ:</label>
+                        <input type="text" class="form-control" id="cnpj" name="Cnpj" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="logoEmpresa" class="form-label">Logo:</label>
+                        <input type="file" class="form-control" id="logoEmpresa" name="LogoEmpresaFile">
+                    </div>
+                    <div class="mb-3">
+                        <label for="cep" class="form-label">CEP:</label>
+                        <input type="text" class="form-control" id="cep" name="Cep">
+                    </div>
+                    <div class="mb-3">
+                        <label for="endereco" class="form-label">Endereço:</label>
+                        <input type="text" class="form-control" id="endereco" name="Endereco" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="complemento" class="form-label">Complemento:</label>
+                        <input type="text" class="form-control" id="complemento" name="Complemento" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="telefone" class="form-label">Telefone:</label>
+                        <input type="text" class="form-control" id="telefone" name="Telefone" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">E-mail:</label>
+                        <input type="text" class="form-control" id="email" name="Email" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Edição de empresa -->
+<div class="modal fade" id="editarEmpresaModal" tabindex="1" aria-labelledby="editarEmpresaModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editarEmpresaForm" action="/ManterConfiguracoes/EditarDadosEmpresa" method="post" enctype="multipart/form-data">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editarCliente">Editar Empresa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="idEmpresa" name="Id" value="@ViewBag.Empresa.Id">
+                    <div class="mb-3">
+                        <label for="nomeEmpresa" class="form-label">Nome Empresa:</label>
+                        <input type="text" class="form-control" id="nomeEmpresaEdicao" name="NomeEmpresa" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="razaoSocial" class="form-label">Razão Social:</label>
+                        <input type="text" class="form-control" id="razaoSocialEdicao" name="RazaoSocial" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cnpj" class="form-label">CNPJ:</label>
+                        <input type="text" class="form-control" id="cnpjEdicao" name="Cnpj" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="logoAtual" class="form-label">Logo atual</label>
+                    </div>
+                    <div class="mb-3">
+                        <label for="logoEmpresa" class="form-label">Logo:</label>
+                        <input type="file" class="form-control" id="logoEmpresaEdicao" name="LogoEmpresaFile">
+                    </div>
+                    <div class="mb-3">
+                        <label for="cep" class="form-label">CEP:</label>
+                        <input type="text" class="form-control" id="cepEdicao" name="Cep">
+                    </div>
+                    <div class="mb-3">
+                        <label for="endereco" class="form-label">Endereço:</label>
+                        <input type="text" class="form-control" id="enderecoEdicao" name="Endereco" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="complemento" class="form-label">Complemento:</label>
+                        <input type="text" class="form-control" id="complementoEdicao" name="Complemento" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="telefone" class="form-label">Telefone:</label>
+                        <input type="text" class="form-control" id="telefoneEdicao" name="Telefone" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">E-mail:</label>
+                        <input type="text" class="form-control" id="emailEdicao" name="Email" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Model Departamentos cadastrados -->
+<div class="modal fade" id="departamentosCadastradosModal" tabindex="-1" aria-labelledby="departamentosCadastradosModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Departamentos Cadastrados</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="idEmpresaListagemDepartamento" name="IdEmpresa" value="@ViewBag.Empresa.Id"/>
+                <table class="table table-striped text-center">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome Departamento</th>
+                        <th>Ações</th>
+                    </tr>
+                    </thead>
+                    <tbody id="resultsBodyDepartamentos">
+
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="btnAddDepartamento" data-bs-toggle="modal"
+                        data-bs-target="#addDepartamentoModal">
+                    Adicionar departamento
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal adicionar departamento -->
+<div class="modal fade" id="addDepartamentoModal" tabindex="1" aria-labelledby="addDepartamentoModal"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="addDepartamentoForm" method="post" action="/ManterConfiguracoes/AdicionarDepartamento">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title">Adicionar departamento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Campo Hidden para o id da empresa -->
+                    <input type="hidden" id="idDepartamentoEmpresa" name="EmpresaId" value="@ViewBag.Empresa.Id"/>
+                    <div class="mb-3">
+                        <label for="nomeDepartamento" class="form-label">Nome Departamento:</label>
+                        <input type="text" class="form-control" id="nomeDepartamento" name="NomeDepartamento" required/>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary salvarDepartamentoBtn">
+                        Salvar Departamento
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Tabel para Mostrar a empresa -->
+<table class="table text-center">
+    <thead>
+    <tr class="row">
+        <th class="col-6">Razão Social</th>
+        <th class="col-4">CNPJ</th>
+        <th class="col-2">Ações</th>
+    </tr>
+    </thead>
+    <tbody id="resultsBody">
+        
+    </tbody>
+</table>
+
+@section Scripts {
+    <script>
+        //Funções Javascript
+        //Carregar os departamentos cadastrados
+        function carregarDepartamentos() {
+            var empresaId = $('#idEmpresaListagemDepartamento').val();
+            $.ajax({
+                url: '/ManterConfiguracoes/ListarDepartamentos',
+                type: 'GET',
+                data: {empresaId: empresaId},
+                dataType: 'json',
+                success: function(departamentos) {
+                    var tbody = $('#resultsBodyDepartamentos');
+                    tbody.empty();
+                    if (departamentos && departamentos.length > 0) {
+                        departamentos.forEach(function(depto) {
+                            var row = `
+                                <tr data-id="${depto.idDepartamento}">
+                                    <td>${depto.idDepartamento}</td>
+                                    <td class="nomeDepartamento">${depto.nomeDepartamento}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-secondary editarDepartamentoBtn">
+                                            <i class="fas fa-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger removerDepartamentoBtn">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                            tbody.append(row);
+                        });
+                    } else {
+                        tbody.append('<tr><td colspan="3">Nenhum departamento cadastrado.</td></tr>');
+                    }
+                },
+                error: function() {
+                    alert('Erro ao carregar departamentos');
+                }
+            });
+        }   
+        
+        //Carregar a empresa cadastrada
+        function carregarEmpresa() {
+            $.ajax({
+                url: '/ManterConfiguracoes/ListarEmpresa',
+                type: 'GET',
+                dataType: 'json',
+                success: function (empresa) {
+                    var tbody = $('#resultsBody');
+                    tbody.empty();
+                    
+                    //Verifica se existem empresas
+                    if (empresa && empresa.length > 0) {
+                        empresa.forEach(function (empresa) {
+                            var row = `
+                                <tr class="row">
+                                    <td class="col-6">${empresa.razaoSocial}</td>
+                                    <td class="col-4">${empresa.cnpj}</td>
+                                    <td class="col-2">
+                                        <button class="btn btn-lg btn-secondary" type="button"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#editarEmpresaModal"
+                                            title="Editar">
+                                            <i class="fas fa-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-lg btn-primary" type="button"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#departamentosCadastradosModal"
+                                            title="Departamentos">
+                                            <i class="fas fa-briefcase"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                            tbody.append(row);
+                        });
+                    } else {
+                        tbody.append('<tr><td colspan="3">Nenhuma empresa cadastrada</td></tr>');
+                    }
+                },
+                error: function () {
+                    alert('Erro ao carregar empresa');
+                }
+            })
+        }
+        
+        //Ações de botões
+        //Ao clicar no botão de editar transforma o campo em input
+        $(document).on('click', '.editarDepartamentoBtn', function () {
+            var row = $(this).closest('tr');
+            var nomeDepartamentoCell = row.find('.nomeDepartamento');
+            var nomeAtual = nomeDepartamentoCell.text().trim();
+            
+            row.data('nomeOriginal', nomeAtual);
+            
+            nomeDepartamentoCell.html(`
+                <input type="text" class="form-control nomeInput" value="${nomeAtual}"/>
+            `)
+
+            row.find('.editarDepartamentoBtn').replaceWith(`
+                <button class="btn btn-sm btn-success salvarEdicaoDepartamento">
+                    <i class="fas fa-check"></i>
+                </button>
+            `);
+            row.find('.removerDepartamentoBtn').replaceWith(`
+                <button class="btn btn-sm btn-secondary cancelarEdicao">
+                    <i class="fas fa-times"></i>
+                </button>
+            `)
+        });
+        
+        //Salva a edição do departamento
+        $(document).on('click', '.salvarEdicaoDepartamento', function () {
+            var row = $(this).closest('tr');
+            var nomeInput = row.find('.nomeInput');
+            var idDepartamento = row.data('id');
+            const novoNome = nomeInput.val();
+
+            //Prepara os dados que serão enviados para o backend em formato JSON
+            var dataSend = {
+                IdDepartamento: idDepartamento,
+                NomeDepartamento: novoNome
+            };
+
+            $.ajax({
+                url: '/ManterConfiguracoes/EditarDepartamento',
+                type: 'POST',
+                data: JSON.stringify(dataSend),
+                contentType: 'application/json',
+                dataType: 'json',
+                headers: {
+                    //Envia o token antiForgery
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function (response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        row.find('.nomeDepartamento').text(novoNome);
+                        row.find('.salvarEdicaoDepartamento, .cancelarEdicao').remove();
+                        row.find('td:last-child').append(`
+                            <button class="btn btn-sm btn-secondary editarDepartamentoBtn">
+                                <i class="fas fa-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger removerDepartamentoBtn">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        `);
+                    } else {
+                        toastr.error(response.message);
+                    }
+                },
+                error: function (xhr) {
+                    toastr.error('Erro ao editar o departamento');
+                }
+            })
+        });
+        
+        //Cancela a edição do departamento
+        $(document).on('click', '.cancelarEdicao', function () {
+            var row = $(this).closest('tr');
+            var nomeOriginal = row.data('nomeOriginal');
+
+            // Restaura o nome original e volta o botão de editar
+            row.find('.nomeDepartamento').text(nomeOriginal);
+            row.find('.salvarEdicaoDepartamento, .cancelarEdicao').remove();
+            row.find('td:last-child').append(`
+                <button class="btn btn-sm btn-secondary editarDepartamentoBtn">
+                    <i class="fas fa-pencil"></i>
+                </button>
+                <button class="btn btn-sm btn-danger removerDepartamentoBtn">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            `);
+        })
+        
+        //Inativar departamento
+        $(document).on('click', '.removerDepartamentoBtn', function () {
+            var row = $(this).closest('tr');
+            var idDepartamento = row.data('id');
+            
+            if (confirm('Tem certeza que deseja excluir esse departamento?')) {
+                $.ajax({
+                    url: '/ManterConfiguracoes/InativarDepartamento',
+                    type: 'POST',
+                    data: JSON.stringify({idDepartamento: idDepartamento}),
+                    contentType: 'application/json',
+                    dataType: 'json',
+                    headers: {
+                        //Envia o token antiForgery
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            toastr.success('Departamento excluído!');
+                            row.remove();
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function () {
+                        toastr.error('Erro ao excluir departamento');
+                    }
+                })
+            }
+        })
+        
+        //Quando abrir o modal de edição da empresa preenche os dados
+        $('#editarEmpresaModal').on('show.bs.modal', function () {
+            var empresaId = @(ViewBag.Empresa?.Id ?? 0);
+            
+            if (!empresaId) {
+                toastr.error("ID da empresa não encontrado.");
+                return;
+            }
+            
+            $.ajax({
+                url: '/ManterConfiguracoes/ObterEmpresa',
+                type: 'GET',
+                data: {id: empresaId},
+                dataType: 'json',
+                success: function (empresa) {
+                    $('#idEmpresa').val(empresa.id);
+                    $('#nomeEmpresaEdicao').val(empresa.nomeEmpresa);
+                    $('#razaoSocialEdicao').val(empresa.razaoSocial);
+                    $('#cnpjEdicao').val(empresa.cnpj);
+                    $('#cepEdicao').val(empresa.cep);
+                    $('#enderecoEdicao').val(empresa.endereco);
+                    $('#complementoEdicao').val(empresa.complemento);
+                    $('#telefoneEdicao').val(empresa.telefone);
+                    $('#emailEdicao').val(empresa.email);
+                },
+                error: function () {
+                    toastr.error('Erro ao carregar os dados da empresa');
+                }
+            })
+        })
+
+        // Quando o modal de departamentos for aberto, carregar os dados
+        $('#departamentosCadastradosModal').on('shown.bs.modal', function() {
+            carregarDepartamentos();
+        });
+        
+        //Carrega o DOM 
+        $(document).ready(function () {
+            //Ao carregar a página carrega a empresa
+            carregarEmpresa();
+            
+            //Pra não fechar o modal de adicionar departamento tive que fazer por ajax :-:
+            //Add Departamento
+            $(document).on('submit', '#addDepartamentoForm', function (event) {
+                event.preventDefault();
+                
+                var formData = $(this).serialize();
+                
+                $.ajax({
+                    url: '/ManterConfiguracoes/AdicionarDepartamento/',
+                    type: 'POST',
+                    data: formData,
+                    dataType: 'json',
+                    headers: {
+                        // Envia o token antiForgery
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            toastr.success(response.message);
+                            
+                            //Fecha modal
+                            $('#addDepartamentoModal').modal('hide');
+                            $('#departamentosCadastradosModal').modal('show');
+                            
+                            carregarDepartamentos();
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function (xhr) {
+                        toastr.error('Erro ao adicionar departamento');
+                    }
+                })
+            })
+
+            //Edição de empresa
+            $(document).on('submit', '#editarEmpresaForm', function(e) {
+                e.preventDefault();
+
+                var form = $(this)[0];
+                var formData = new FormData(form); //Cria um formdata com os campos e o arquivo
+
+                $.ajax({
+                    url: $(this).attr('action'), //Pega a url que foi definida no action do form
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            toastr.success(response.message);
+                            //Fecha o modal
+                            $('#editarEmpresaModal').modal('hide');
+                            carregarEmpresa();
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function (xhr) {
+                        toastr.error('Erro ao adicionar departamento');
+                    }
+                })
+            })
+            
+        });
+    </script>
+}
+
