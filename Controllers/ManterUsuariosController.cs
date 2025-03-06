@@ -42,6 +42,7 @@ public class ManterUsuariosController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Autenticar(LoginVIewModel model)
     {
+        
         if (ModelState.IsValid)
         {
             var result = await _signInManager.PasswordSignInAsync(

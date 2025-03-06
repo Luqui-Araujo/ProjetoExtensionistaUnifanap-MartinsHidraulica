@@ -5,7 +5,7 @@ namespace MartinsHidraulica.Views.ViewModel;
 public class ClienteViewModel
 {
     public int Id { get; set; }
-    [Required]
+    [Required] 
     public string Nome { get; set; }
     public string? Telefone { get; set; }
     public string? Email { get; set; }

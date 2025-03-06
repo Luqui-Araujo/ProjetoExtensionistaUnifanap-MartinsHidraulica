@@ -102,19 +102,15 @@
                     </div>
                     
                     <div class="row">
-                        
                         <div class="col-6 mb-3">
                             <label for="cidade" class="form-label">Cidade</label>
                             <input type="text" class="form-control" id="cidade" name="Cidade">
                         </div>
-
                         <div class="col-6 mb-3">
                             <label for="estado" class="form-label">Estado:</label>
                             <input type="text" class="form-control" id="estado" name="Estado">
                         </div>
-
                     </div>
-                    
                     <div class="mb-3">
                         <label for="tipoCliente" class="form-label">Tipo de Cliente</label>
                         <select class="form-select" id="tipoCliente" name="TipoCliente" required>
@@ -146,10 +142,89 @@
     </tbody>
 </table>
 
+<!-- Modal Edição de empresa -->
+<div class="modal fade" id="editarClienteModal" tabindex="1" aria-labelledby="editarClienteModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editarClienteForm" action="/ManterClientes/EditarCliente" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editarCliente">Editar Cliente</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="idClienteEdicao">
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label for="nome" class="form-label">Nome Cliente:</label>
+                            <input type="text" class="form-control" id="nomeClienteEdicao" name="Nome" required>
+                        </div>
+
+                        <div class="col-6 mb-3">
+                            <label for="telefone" class="form-label">Telefone:</label>
+                            <input type="text" class="form-control" id="telefoneClienteEdicao" name="Telefone">
+                        </div>
+
+                        <div class="col-6 mb-3">
+                            <label for="email" class="form-label">Email:</label>
+                            <input type="text" class="form-control" id="emailClienteEdicao" name="Email">
+                        </div>
+
+                        <div class="col-6 mb-3">
+                            <label for="cpfCnpj" class="form-label">CPF / CNPJ:</label>
+                            <input type="text" class="form-control" id="cpfCnpjClienteEdicao" name="CpfCnpj">
+                        </div>
+
+                        <div class="col-6 mb-3">
+                            <label for="inscricaoEstadual" class="form-label">Inscrição Estadual:</label>
+                            <input type="text" class="form-control" id="inscricaoEstadualClienteEdicao" name="InscricaoEstadual"/>
+                        </div>
+
+                        <div class="col-6 mb-3">
+                            <label for="endereco" class="form-label">Endereço:</label>
+                            <input type="text" class="form-control" id="enderecoClienteEdicao" name="Endereco">
+                        </div>
+
+                        <div class="col-6 mb-3">
+                            <label for="cep" class="form-label">CEP:</label>
+                            <input type="text" class="form-control" id="cepClienteEdicao" name="Cep">
+                        </div>
+
+                        <div class="col-6 mb-3">
+                            <label for="bairro" class="form-label">Bairro:</label>
+                            <input type="text" class="form-control" id="bairroClienteEdicao" name="Bairro">
+                        </div>
+
+                        <div class="col-6 mb-3">
+                            <label for="cidade" class="form-label">Cidade:</label>
+                            <input type="text" class="form-control" id="cidadeClienteEdicao" name="Cidade">
+                        </div>
+
+                        <div class="col-6 mb-3">
+                            <label for="estado" class="form-label">Estado:</label>
+                            <input type="text" class="form-control" id="estadoClienteEdicao" name="Estado">
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label for="tipoCliente" class="form-label">Tipo de Cliente</label>
+                            <select class="form-select" id="tipoClienteEdicao" name="TipoCliente" required>
+                                <option value="Pessoa Física">Pessoa Física</option>
+                                <option value="Pessoa Jurídica">Pessoa Jurídica</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @section Scripts
 {
     <script>
-        var antiForgeryToken = '@token';
         
         //Preencher a tabela com os clientes
         function preencherTabela(clientes) {
@@ -163,10 +238,10 @@
                         <td class="col-4">${cliente.cpfCnpj || ""}</td>
                         <td class="col-2">
                             ${cliente.ativo ? `
-                                <button type="button" class="btn btn-sm btn-secondary editarUsuario"
+                                <button type="button" class="btn btn-sm btn-secondary editarCliente"
                                     data-id="${cliente.id}"
                                     data-bs-toggle="modal"
-                                    data-bs-target="#modalEditarCliente"
+                                    data-bs-target="#editarClienteModal"
                                     title="Editar">
                                     <i class="fas fa-pencil"></i>
                                 </button>
@@ -216,7 +291,7 @@
         }
         
         //Registro de novos clientes 
-        $('#modalCadastrarCliente').on('submit', function (e) {
+        $('#criarClienteForm').on('submit', function (e) {
             e.preventDefault();
 
             $.ajax({
@@ -226,18 +301,20 @@
                 success: function (response) {
                     if (response.success) {
                         toastr.success('Cliente cadastrado com sucesso!');
-                        $('#modalCadastroCliente').modal('hide');
+                        // Fecha o modal
+                        $('#modalCadastrarCliente').modal('hide');
+                        // Reseta o formulário
+                        $('#criarClienteForm')[0].reset();
+                        // Atualiza a tabela
                         carregarClientesAtivos();
-                        window.location.href = response.redirectUrl; // Recarrega a página
                     } else {
-                        // Exibe erros no modal
                         var errorList = $('<ul class="text-danger"></ul>');
                         if (Array.isArray(response.message)) {
-                            response.message.forEach(function(message) {
+                            response.message.forEach(function (message) {
                                 errorList.append($('<li></li>').text(message));
                             });
                         } else {
-                            errorList.append($('<li></li>').text(response.message)); // Trata como string única
+                            errorList.append($('<li></li>').text(response.message));
                         }
                         $('#errorContainer').html(errorList);
                     }
@@ -247,14 +324,124 @@
                 }
             });
         });
+
+        //Quando abrir o modal de edição da empresa preenche os dados
+        $('#editarClienteModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // Captura o botão que acionou o modal
+            var id = button.attr('data-id'); // Obtém o ID diretamente do atributo
+
+            if (!id) {
+                console.error(id);
+                return;
+            }
+            
+            $.ajax({
+                url: '/ManterClientes/ObterCliente',
+                type: 'GET',
+                data: {id: id},
+                headers: {
+                    "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
+                },
+                dataType: 'json',
+                success: function (cliente) {
+                    $('#idClienteEdicao').val(cliente.id);
+                    $('#nomeClienteEdicao').val(cliente.nome);
+                    $('#telefoneClienteEdicao').val(cliente.telefone);
+                    $('#emailClienteEdicao').val(cliente.email);
+                    $('#cpfCnpjClienteEdicao').val(cliente.cpfCnpj);
+                    $('#inscricaoEstadualClienteEdicao').val(cliente.inscricaoEstadual);
+                    $('#enderecoClienteEdicao').val(cliente.endereco);
+                    $('#cepClienteEdicao').val(cliente.cep);
+                    $('#bairroClienteEdicao').val(cliente.bairro);
+                    $('#cidadeClienteEdicao').val(cliente.cidade);
+                    $('#estadoClienteEdicao').val(cliente.estado);
+                    $('#tipoClienteEdicao').val(cliente.tipoCliente);
+                },
+                error: function () {
+                    toastr.error('Erro ao carregar os dados da empresa');
+                }
+            })
+        })
         
         var clientesCarregados = [];
         
         $(document).ready(function () {
             carregarClientesAtivos();
+
+            //Edição de empresa
+            $(document).on('submit', '#editarClienteForm', function(e) {
+                e.preventDefault();
+
+                var form = $(this)[0];
+                var formData = new FormData(form); //Cria um formdata com os campos e o arquivo
+
+                $.ajax({
+                    url: $(this).attr('action'), //Pega a url que foi definida no action do form
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            toastr.success(response.message);
+                            //Fecha o modal
+                            $('#editarClienteModal').modal('hide');
+                            carregarClientesAtivos();
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function (xhr) {
+                        toastr.error('Erro ao adicionar departamento');
+                    }
+                })
+            })
         });
-    
-    
+
+        //Inativar usuários
+        function InativarCliente(id) {
+            $.ajax({
+                url: '/ManterClientes/Inativar',
+                type: 'POST',
+                data: {
+                    id: id
+                },
+                headers: {
+                    "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function() {
+                    toastr.success("Usuário inativado");
+                    carregarClientesAtivos();
+                },
+                error: function () {
+                    toastr.error("Erro ao inativar o usuário");
+                }
+            });
+        }
+
+        //Reativar usuários inativos
+        function ReativarCliente(id) {
+            $.ajax({
+                url: '/ManterClientes/Reativar',
+                type: 'POST',
+                data: {
+                    id: id
+                },
+                headers: {
+                    "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function() {
+                    toastr.success("Usuário reativado");
+                    carregarClientesAtivos();
+                },
+                error: function () {
+                    toastr.error("Erro ao reativar o usuário");
+                }
+            })
+        }
     
     </script>
 }

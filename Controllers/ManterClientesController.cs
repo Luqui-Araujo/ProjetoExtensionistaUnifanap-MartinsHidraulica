@@ -71,7 +71,7 @@ public class ManterClientesController : Controller
         _context.Clientes.Add(addCliente);
         await _context.SaveChangesAsync();
 
-        return RedirectToAction("Clientes");
+        return Json(new { success = true, message = "Cliente adicionado com sucesso!" });
     }
     
     //Get obter informações por cliente
@@ -87,6 +87,76 @@ public class ManterClientesController : Controller
         }
 
         return Json(cliente);
+    }
+    
+    //Post Inativar cliente
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult Inativar(int id)
+    {
+        
+        var cliente = _context.Clientes.Find(id);
+        if (cliente != null)
+        {
+            cliente.Ativo = false;
+            _context.SaveChanges();
+            return Json(new {success = true, message = "Inativado com sucesso!"} );
+        }
+
+        return BadRequest("Usuário não encontrado");
+    }
+
+    //Post Reativar cliente
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult Reativar(int id)
+    {
+        
+        var cliente = _context.Clientes.Find(id);
+        if (cliente != null)
+        {
+            cliente.Ativo = true;
+            _context.SaveChanges();
+            return Json(new {success = true, message = "Reativado com sucesso!"} );
+        }
+
+        return BadRequest("Usuário não encontrado");
+    }
+    
+    //Post edição de Clientes
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditarCliente(ClienteViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+            return BadRequest(new { success = false, message = "Dados inválidos", errors });
+        }
+        
+        var clienteExistente = await _context.Clientes.FindAsync(model.Id);
+        if (clienteExistente == null)
+        {
+            return BadRequest("Cliente não encontrado");
+        }
+        
+        clienteExistente.Nome = model.Nome;
+        clienteExistente.CpfCnpj = model.CpfCnpj;
+        clienteExistente.InscricaoEstadual = model.InscricaoEstadual;
+        clienteExistente.Email = model.Email;
+        clienteExistente.Telefone = model.Telefone;
+        clienteExistente.Cep = model.Cep;
+        clienteExistente.Endereco = model.Endereco;
+        clienteExistente.Bairro = model.Bairro;
+        clienteExistente.Cidade = model.Cidade;
+        clienteExistente.Estado = model.Estado;
+        clienteExistente.Ativo = model.Ativo = true;
+        clienteExistente.TipoCliente = model.TipoCliente;
+        
+        await _context.SaveChangesAsync();
+        
+        return Json(new { success = true, message = "Cliente editado com sucesso!"});
+        
     }
     
     
