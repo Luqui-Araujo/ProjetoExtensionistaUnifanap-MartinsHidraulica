@@ -14,7 +14,7 @@
         <button type="button" class="btn btn-primary mb-3"
                 data-bs-toggle="modal"
                 data-bs-target="#modalCadastrarCliente"
-                title="Adicionar Usuário">
+                title="Adicionar Cliente">
             <i class="fas fa-plus"></i>
         </button>
     </div>
@@ -368,7 +368,23 @@
         $(document).ready(function () {
             carregarClientesAtivos();
 
-            //Edição de empresa
+            //Evento de pesquisa
+            $('#searchInput').on('input', function () {
+                var termo = $(this).val().toLowerCase();
+                filtrarClientes(termo);
+            });
+
+            //Função para filtrar os clientes
+            function filtrarClientes(termo) {
+                var clientesFiltrados = clientesCarregados.filter(function (cliente) {
+                    return (
+                        cliente.nome.toLowerCase().includes(termo)
+                    );
+                });
+                preencherTabela(clientesFiltrados); // Atualiza a tabela com os usuários filtrados
+            }
+
+            //Edição de cliente
             $(document).on('submit', '#editarClienteForm', function(e) {
                 e.preventDefault();
 
@@ -395,7 +411,7 @@
                         }
                     },
                     error: function (xhr) {
-                        toastr.error('Erro ao adicionar departamento');
+                        toastr.error('Erro ao editar o cliente');
                     }
                 })
             })
@@ -442,6 +458,8 @@
                 }
             })
         }
+        
+        
     
     </script>
 }

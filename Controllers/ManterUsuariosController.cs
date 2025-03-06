@@ -42,6 +42,13 @@ public class ManterUsuariosController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Autenticar(LoginVIewModel model)
     {
+        var usuario = await _userManager.FindByEmailAsync(model.Email);
+
+        if (usuario == null || !usuario.Ativo)
+        {
+            TempData["ErrorMessage"] = "Usuário Inativo ou não Encontrado";
+            return RedirectToAction("Login");
+        }
         
         if (ModelState.IsValid)
         {

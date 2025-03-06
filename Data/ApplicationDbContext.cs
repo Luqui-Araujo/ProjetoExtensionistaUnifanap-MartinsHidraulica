@@ -14,4 +14,5 @@ public class ApplicationDbContext : IdentityDbContext<Usuarios>
     public DbSet<Empresa> Empresas { get; set; }
     public DbSet<Departamentos> Departamentos { get; set; }
     public DbSet<Cliente> Clientes { get; set; }
+    public DbSet<Produto> Produtos { get; set; }
 }
