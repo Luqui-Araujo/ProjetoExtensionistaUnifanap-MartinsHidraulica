@@ -24,7 +24,6 @@ public class ManterConfiguracoesController : Controller
         return View();
     }
     
-    
     //View empresa
     [Authorize(Roles = "Administrador")]
     public IActionResult CadastroEmpresa()
@@ -34,6 +33,13 @@ public class ManterConfiguracoesController : Controller
         //Gambiarra funcional pra pegar o id da empresa na View
         var empresa = _context.Empresas.FirstOrDefault();
         ViewBag.Empresa = empresa;
+        return View();
+    }
+
+    //View Configuracoes orcamento
+    [Authorize(Roles = "Administrador")]
+    public IActionResult ConfiguracoesOrcamento()
+    {
         return View();
     }
     
@@ -264,4 +270,137 @@ public class ManterConfiguracoesController : Controller
         
         return File(empresa.LogoEmpresa, "image/png");
     }
+    
+    //Configurações de orçamento
+    
+    //POST adicionar novo vendedor
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult AdicionarVendedor(ConfiguracoesViewModel model)
+    {
+        try
+        {
+            var vendedor = new Vendedores
+            {
+                Id = model.IdVendedor,
+                Nome = model.NomeVendedor,
+                Ativo = model.AtivoVendedor = true
+            };
+
+            _context.Vendedores.Add(vendedor);
+            _context.SaveChanges();
+
+            return Json(new { success = true, message = "Vendedor adicionado com sucesso!" });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = "Erro ao adicionar o vendedor.", erros = new[] { ex.Message } });
+
+        }
+    }
+    
+    //POST adicionar novo tipo de pagamento
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult AdicionarTipoPagamento(ConfiguracoesViewModel model)
+    {
+        try
+        {
+            var tipoPagamento = new TiposPagamento
+            {
+                Id = model.IdTipoPagamento,
+                Nome = model.NomeTipoPagamento,
+                Ativo = model.AtivoTipoPagamento = true
+            };
+            
+            _context.TiposPagamento.Add(tipoPagamento);
+            _context.SaveChanges();
+            
+            return Json(new {success = true, message = "Tipo de pagamento adicionado com sucesso!"});
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = "Erro ao adicionar o vendedor.", erros = new[] { ex.Message } });
+
+        }
+    }
+    
+    //GET listar vendedores e tipos de pagamentos
+    [HttpGet]
+    public IActionResult ListarTiposDePagamentoEVendedores()
+    {
+        var vendedores = _context.Vendedores
+            .Where(v => v.Ativo == true)
+            .Select(v => new
+            {
+                v.Id,
+                v.Nome,
+                v.Ativo
+            });
+        
+        var tiposPagamento = _context.TiposPagamento
+            .Where(t => t.Ativo == true)
+            .Select(t => new
+            {
+                t.Id,
+                t.Nome,
+                t.Ativo
+            });
+
+        return Json(new
+        {
+            vendedores = vendedores,
+            tiposPagamento = tiposPagamento
+        });
+    }
+    
+    //POST Editar vendedor
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult EditarVendedor(int id, string nome)
+    {
+        try
+        {
+            var vendedor = _context.Vendedores.Find(id);
+            if (vendedor == null)
+            {
+                return Json(new { success = false, message = "Vendedor não encontrado" });
+            }
+
+            vendedor.Nome = nome;
+            _context.SaveChanges();
+
+            return Json(new { success = true, message = "Vendedor atualizado com sucesso!" });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = "Erro ao atualizar o vendedor.", erros = new[] { ex.Message } });
+        }
+    }
+
+    //POST Editar tipo de pagamento
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult EditarTipoPagamento(int id, string nome)
+    {
+        try
+        {
+            var tipoPagamento = _context.TiposPagamento.Find(id);
+            if (tipoPagamento == null)
+            {
+                return Json(new { success = false, message = "Tipo de pagamento não encontrado" });
+            }
+
+            tipoPagamento.Nome = nome;
+            _context.SaveChanges();
+
+            return Json(new { success = true, message = "Tipo de pagamento atualizado com sucesso!" });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = "Erro ao atualizar o tipo de pagamento.", erros = new[] { ex.Message } });
+        }
+    }
+    
+    
 }

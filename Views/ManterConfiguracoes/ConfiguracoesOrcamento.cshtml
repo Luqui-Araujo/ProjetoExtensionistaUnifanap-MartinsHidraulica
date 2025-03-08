@@ -1,0 +1,372 @@
+﻿
+@{
+    ViewBag.Title = "Configurações de orçamento";
+    Layout = "_Layout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+    <div>
+        <a href="Configuracoes" class="btn btn-warning">
+            <i class="fas fa-chevron-left fa-1x"></i>
+        </a>
+    </div>
+
+    <div class="flex-grow-1 text-center">
+        <h3 style="font-weight: bold">Minha Empresa</h3>
+    </div>
+</div>
+
+<div class="row">
+    <!--Tabela Vendedores-->
+    <div class="col-12 col-md-6 mt-3">
+        <div class="card">
+            <div class="card-header text-center text-white bg-dark">
+                Vendedores
+            </div>
+            <div class="card-body">
+                <button class="btn btn-primary mb-2"
+                        data-id=""
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalAdicionarVendedor">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <div class="table-responsive">
+                    <table class="table text-center table-striped table-hover table-secondary">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Ações</th>
+                        </tr>
+                        </thead>
+                        <tbody id="resultsBodyVendedores">
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!--Tabela Tipos de Pagamento-->
+    <div class="col-12 col-md-6 mt-3">
+        <div class="card">
+            <div class="card-header text-center text-white bg-dark">
+                Tipos de Pagamento
+            </div>
+            <div class="card-body">
+                <button class="btn btn-primary mb-2"
+                        data-id=""
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalAdicionarTipoPagamento">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <div class="table-responsive">
+                    <table class="table text-center table-striped table-hover table-secondary">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Ações</th>
+                        </tr>
+                        </thead>
+                        <tbody id="resultsBodyTipoPagamento">
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal adicionar vendedor -->
+<div class="modal fade" id="modalAdicionarVendedor" tabindex="1" aria-labelledby="modalAdicionarVendedor" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="adicionarVendedorForm" action="/ManterConfiguracoes/AdicionarVendedor" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title" id="adicionarVendedor">Adicionar vendedor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="errorContainer" class="mb-3"></div>
+                    <input type="hidden" id="IdVendedor" name="Id">
+                    <div class="mb-3">
+                        <label for="nomeVendedor" class="form-label">Nome Vendedor:</label>
+                        <input type="text" class="form-control" id="nomeVendedor" name="NomeVendedor" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal adicionar tipo de pagamento -->
+<div class="modal fade" id="modalAdicionarTipoPagamento" tabindex="1" aria-labelledby="modalAdicionarTipoPagamento" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="adicionarTipoPagamentoForm" action="/ManterConfiguracoes/AdicionarTipoPagamento" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title" id="adicionarTipoPagamento">Adicionar Tipo de Pagamento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="errorContainer" class="mb-3"></div>
+                    <input type="hidden" id="IdTipoPagamento" name="Id">
+                    <div class="mb-3">
+                        <label for="nome" class="form-label">Nome Tipo de Pagamento:</label>
+                        <input type="text" class="form-control" id="nomeTipoPagamento" name="NomeTipoPagamento" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script>
+        
+        var vendedoresCarregados = [];
+        var tiposPagamentoCarregados = [];
+        
+        $(document).ready(function () {
+            carregarAtivos();
+        });
+        
+        //Registro de vendedores
+        $('#adicionarVendedorForm').on('submit', function (e) {
+            e.preventDefault();
+
+            // Check if the name field is empty
+            if (!$('#nomeVendedor').val().trim()) {
+                toastr.error('O nome do vendedor é obrigatório.');
+                return;
+            }
+            
+            $.ajax({
+                url: '/ManterConfiguracoes/AdicionarVendedor',
+                type: 'POST',
+                data: $(this).serialize(),
+                headers: {
+                    "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function (response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        //Fecha modal
+                        $('#modalAdicionarVendedor').modal('hide');
+                        //Reseta o formulário
+                        $('#adicionarVendedorForm')[0].reset();
+                        //Atualiza tabela
+                        carregarAtivos();
+                    } else {
+                        var errorList = $('<ul class="text-danger"></ul>');
+                        if (Array.isArray(response.message)) {
+                            response.message.forEach(function (message) {
+                                errorList.append($('<li></li>').text(message));
+                            });
+                        } else {
+                            errorList.append($('<li></li>').text(response.message));
+                        }
+                        $('#errorContainer').html(errorList);
+                    }
+                },
+                error: function (xhr) {
+                    console.error('Erro:', xhr);
+                    toastr.error('Ocorreu um erro ao processar a requisição.');
+                }
+            });
+        });
+
+        //Registro de tipos de documento
+        $('#adicionarTipoPagamentoForm').on('submit', function (e) {
+            e.preventDefault();
+
+            // Check if the name field is empty
+            if (!$('#nomeTipoPagamento').val().trim()) {
+                toastr.error('O nome do tipo de pagamento é obrigatório.');
+                return;
+            }
+
+            $.ajax({
+                url: '/ManterConfiguracoes/AdicionarTipoPagamento',
+                type: 'POST',
+                headers: {
+                    "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
+                },
+                data: $(this).serialize(),
+                success: function (response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        //Fecha modal
+                        $('#modalAdicionarTipoPagamento').modal('hide');
+                        //Reseta o formulário
+                        $('#adicionarTipoPagamentoForm')[0].reset();
+                        //Atualiza tabela
+                        carregarAtivos();
+                    } else {
+                        var errorList = $('<ul class="text-danger"></ul>');
+                        if (Array.isArray(response.message)) {
+                            response.message.forEach(function (message) {
+                                errorList.append($('<li></li>').text(message));
+                            });
+                        } else {
+                            errorList.append($('<li></li>').text(response.message));
+                        }
+                        $('#errorContainer').html(errorList);
+                    }
+                },
+                error: function (xhr) {
+                    console.error('Erro:', xhr);
+                    toastr.error('Ocorreu um erro ao processar a requisição.');
+                }
+            });
+        });
+        
+        function preencherTabelas(produtos, tiposPagamento) {
+            var tbodyVendedores = $('#resultsBodyVendedores');
+            var tbodyTiposPagamento = $('#resultsBodyTipoPagamento');
+            
+            tbodyVendedores.empty();
+            tbodyTiposPagamento.empty();
+            
+            produtos.forEach(function (produto) {
+                tbodyVendedores.append(`
+                    <tr>
+                        <td>${produto.id}</td>
+                        <td>${produto.nome}</td>
+                        <td>
+                            <button class="btn btn-secondary editar-tipo-pagamento">
+                                <i class="fas fa-pencil"></i>
+                            </button>
+                            <button class="btn btn-danger"
+                                    onclick="InativarVendedor(${produto.id})">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `);
+            });
+            
+            tiposPagamento.forEach(function (tipoPagamento) {
+                tbodyTiposPagamento.append(`
+                    <tr>
+                        <td>${tipoPagamento.id}</td>
+                        <td>${tipoPagamento.nome}</td>
+                        <td>
+                            <button class="btn btn-secondary editar-vendedor">
+                                <i class="fas fa-pencil"></i>
+                            </button>
+                            <button class="btn btn-danger"
+                                    onclick="InativarTipoPagamento(${tipoPagamento.id})">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `);
+            });
+
+            // Event handlers for edit buttons
+            $('.editar-vendedor').on('click', function() {
+                editarCelula($(this).closest('tr').find('.nome-cell'), 'vendedor');
+            });
+
+            $('.editar-tipo-pagamento').on('click', function() {
+                editarCelula($(this).closest('tr').find('.nome-cell'), 'tipoPagamento');
+            });
+        }
+        
+        //Carregar vendedores e tipos de pagamento ativos
+        function carregarAtivos() {
+            $.ajax({
+                url: '/ManterConfiguracoes/ListarTiposDePagamentoEVendedores',
+                type: 'GET',
+                success: function (response) {
+                    vendedoresCarregados = response.vendedores;
+                    tiposPagamentoCarregados = response.tiposPagamento;
+                    preencherTabelas(vendedoresCarregados, tiposPagamentoCarregados);
+                },
+            })
+        }
+
+        // Function to transform cell into editable field
+        function editarCelula(cell, tipo) {
+            var valorAtual = cell.text();
+            var id = cell.closest('tr').data('id');
+
+            cell.html(`
+        <div class="input-group">
+            <input type="text" class="form-control form-control-sm" value="${valorAtual}">
+            <button class="btn btn-success btn-sm salvar-edicao" data-tipo="${tipo}" data-id="${id}">
+                <i class="fas fa-check"></i>
+            </button>
+        </div>
+        `);
+
+            // Focus the input
+            cell.find('input').focus();
+
+            // Handle save button click
+            cell.find('.salvar-edicao').on('click', function() {
+                var novoValor = cell.find('input').val();
+                var tipoItem = $(this).data('tipo');
+                var itemId = $(this).data('id');
+
+                salvarEdicao(itemId, novoValor, tipoItem, cell);
+            });
+
+            // Handle enter key press
+            cell.find('input').on('keypress', function(e) {
+                if (e.which === 13) { // Enter key
+                    var novoValor = $(this).val();
+                    salvarEdicao(id, novoValor, tipo, cell);
+                }
+            });
+        }
+
+        // Function to save edited value
+        function salvarEdicao(id, novoNome, tipo, cell) {
+            var url = tipo === 'vendedor' ?
+                '/ManterConfiguracoes/EditarVendedor' :
+                '/ManterConfiguracoes/EditarTipoPagamento';
+
+            var data = tipo === 'vendedor' ?
+                { id: id, nome: novoNome } :
+                { id: id, nome: novoNome };
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: data,
+                headers: {
+                    "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        cell.html(novoNome);
+                    } else {
+                        toastr.error(response.message || "Erro na operação");
+                        cell.html(cell.data('original-value') || "");
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Erro:', xhr);
+                    toastr.error('Erro ao salvar as alterações');
+                    cell.html(cell.data('original-value') || "");
+                }
+            });
+        }
+    
+    </script>
+}
