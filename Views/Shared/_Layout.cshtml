@@ -40,7 +40,7 @@
 </head>
 <body>
 <header>
-    <nav class="navbar navbar-expand-sm gradiente-personalizado-navbar-cima">
+    <nav class="navbar gradiente-personalizado-navbar-cima">
         <div class="container-fluid">
             <a class="navbar-brand" href="/Home/Index">
                 <img src="/ManterConfiguracoes/ObterLogo" alt="Logo" width="250" height="100">
@@ -84,14 +84,13 @@
         <nav
             id="sidebarMenu"
             class="col-md-2 col-lg-2 collapse d-md-block sidebar-scroll
-            gradiente-personalizado-navbar"
-            style="min-height: 100vh;">
+            gradiente-personalizado-navbar">
 
             <!-- Aqui dentro você pode colocar qualquer conteúdo da sua sidebar -->
             <div class="pt-1">
                 <ul class="nav flex-column">
                     <li class="nav-item text-center mt-4">
-                        <a class="nav-link" href="@Url.Action("DashboardOrcamento", "Orcamento")">
+                        <a class="nav-link" href="@Url.Action("Orcamentos", "ManterOrcamentos")">
                             <i class="fas fa-wallet fa-3x" style="color: var(--4);"></i>
                             <p>Orçamento</p>
                         </a>

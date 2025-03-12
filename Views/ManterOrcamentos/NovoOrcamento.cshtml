@@ -1,0 +1,244 @@
+﻿@model MartinsHidraulica.Views.ViewModel.OrcamentoViewModel;
+
+@{
+    ViewBag.Title = "Novo Orçamento";
+    Layout = "_Layout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+    <div>
+        <a href="Orcamentos" class="btn btn-warning">
+            <i class="fas fa-chevron-left fa-1x"></i>
+        </a>
+    </div>
+
+    <div class="flex-grow-1 text-center">
+        <h3 style="font-weight: bold">Novo Orçamento</h3>
+    </div>
+</div>
+<hr/>
+
+<form id="gerarOrcamentoForm" action="/ManterOrcamentos/GerarOrcamento" method="POST">
+    <div class="row">
+        <div class="col-6 mb-3">
+            <label class="form-label "for="identificacao">Identificação do Orçamento
+                <i class="fas fa-question-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" 
+                   title="Será usado para pesquisa dos orçamentos, o campo não é obrigatório"></i>
+            </label>
+            <input class="form-control" type="text" name="Identificacao" id="identificacaoOrcamento" required/>
+        </div>
+        
+        <!-- Campo hidden pra ocupar o espaço -->
+        <div class="col-6">
+            <input type="hidden"/>
+        </div>
+        
+        <hr/>
+        <!-- Informações da Empresa -->
+        <div class="col-6 d-flex flex-column justify-content-center align-items-center" 
+             style="border-right: 1px solid black; border: 1px solid black;">
+            <img src="/ManterConfiguracoes/ObterLogo" class="img-fluid" alt="Logo da empresa"/>
+        </div>
+        <div class="col-6 d-flex flex-column justify-content-center align-items-center"
+             style="border: 1px solid black;">
+            <input class="form-control text-center mb-1" type="text" value="@Model.EmpresaRazaoSocial" disabled/>
+            <div class="input-group">
+                <input class="form-control text-center mb-1" type="text" value="@Model.EmpresaCep" disabled />
+                <input class="form-control text-center mb-1" type="text" value="@Model.EmpresaEndereco" disabled/>
+            </div>
+            <input class="form-control text-center mb-1" type="text" value="@Model.EmpresaComplemento" disabled/>
+            <input class="form-control text-center mb-1" type="text" value="@Model.EmpresaTelefone" disabled/>
+            <input class="form-control text-center" type="text" value="@Model.EmpresaEmail" disabled/>
+        </div>
+        
+        <!-- div pra separar -->
+        <div class="col-12 mt-4">
+            <input type="hidden"/>
+        </div>
+        
+        <input type="hidden" name="ClienteId" id="idCliente"/>
+        <div class="col-6 col-md-4">
+            <label for="nomeCliente" class="form-label">Selecione ou escreva o cliente:
+                <span class="text-danger font-weight-bold">*</span>
+            </label>
+            <div class="input-group">
+                <input class="form-control" type="text" name="NomeCliente" id="nomeCliente" required/>
+                <button type="button" class="btn btn-outline-primary"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalPesquisaCliente">
+                    <i class="fas fa-search fa-1x"></i>
+                </button>
+            </div>
+        </div>
+        <div class="col-6 col-md-4">
+            <label for="telefoneCliente" class="form-label">Telefone:</label>
+            <input class="form-control" type="text" name="TelefoneCliente" id="telefoneCliente"/>
+        </div>
+        <div class="col-6 col-md-4">
+            <label for="emailCliente" class="form-label">Email:</label>
+            <input class="form-control" type="email" name="EmailCliente" id="emailCliente"/>
+        </div>
+        <div class="col-6">
+            <label for="cpfCnpjCliente" class="form-label">CPF / CNPJ:</label>
+            <input class="form-control" type="text" name="ClienteCpfCnpj" id="cpfCnpjCliente"/>
+        </div>
+        <div class="col-6">
+            <label for="inscricaoEstadualCliente" class="form-label">Inscrição Estadual:</label>
+            <input class="form-control" type="text" name="ClienteInscricaoEstadual" id="inscricaoEstadualCliente"/>
+        </div>
+        <div class="col-6 col-md-2">
+            <label for="cepCliente" class="form-label">CEP:</label>
+            <input class="form-control" type="text" name="ClienteCEP" id="cepCliente"/>
+        </div>
+        <div class="col-6 col-md-2">
+            <label for="cidadeCliente" class="form-label">Cidade:</label>
+            <input class="form-control" type="text" name="ClienteCidade" id="cidadeCliente"/>
+        </div>
+        <div class="col-6 col-md-2">
+            <label for="estadoCliente" class="form-label">Estado:</label>
+            <select class="form-select" name="ClienteEstado" id="estadoCliente">
+                <option value="">Selecione o estado...</option>
+                <option value="AC">AC</option>
+                <option value="AL">AL</option>
+                <option value="AP">AP</option>
+                <option value="AM">AM</option>
+                <option value="BA">BA</option>
+                <option value="CE">CE</option>
+                <option value="DF">DF</option>
+                <option value="ES">ES</option>
+                <option value="GO">GO</option>
+                <option value="MA">MA</option>
+                <option value="MS">MS</option>
+                <option value="MT">MT</option>
+                <option value="MG">MG</option>
+                <option value="PA">PA</option>
+                <option value="PB">PB</option>
+                <option value="PR">PR</option>
+                <option value="PE">PE</option>
+                <option value="PI">PI</option>
+                <option value="RJ">RJ</option>
+                <option value="RN">RN</option>
+                <option value="RS">RS</option>
+                <option value="RO">RO</option>
+                <option value="RR">RR</option>
+                <option value="SC">SC</option>
+                <option value="SP">SP</option>
+                <option value="SE">SE</option>
+                <option value="TO">TO</option>
+            </select>
+        </div>
+        <div class="col-6 col-md-3">
+            <label for="bairroCliente" class="form-label">Bairro:</label>
+            <input class="form-control" type="text" name="ClienteBairro" id="bairroCliente"/>
+        </div>
+        <div class="col-6 col-md-3">
+            <label for="enderecoCliente" class="form-label">Endereço:</label>
+            <input class="form-control" type="text" name="ClienteEndereco" id="enderecoCliente"/>
+        </div>
+        <div class="col-5 mb-3">
+            <label for="condicaoPagamento" class="form-label">Condição de pagamento:</label>
+            <select class="form-select" name="CondicaoPagamento" id="condicaoPagamento">
+                <option value="">Selecione um tipo de pagamento...</option>
+                @foreach (var condicao in Model.CondicaoPagamentos)
+                {
+                    <option value="@condicao.Nome">@condicao.Nome</option>
+                }
+            </select>
+        </div>
+    </div>
+    <hr/>
+    <h3 class="text-center">Produtos</h3>
+    <div class="d-flex justify-content-start">
+        <button type="button" class="btn btn-primary" id="addProduto">
+            <i class="fas fa-plus"></i>
+        </button>
+    </div>
+    <div id="produtosContainer">
+        <!-- Os produtos virão aqui -->
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('[data-bs-toggle="tooltip"]').tooltip();
+            
+            //Puxa as informações do endereço pelo CEP
+            $('#cepCliente').on("blur", function () {
+                var cep = $(this).val().replace(/\D/g, '');
+                if (cep != "") {
+                    var validacep = /^[0-9]{8}$/;
+                    if (validacep.test(cep)) {
+                        $.getJSON("https://viacep.com.br/ws/" + cep + "/json/?callback=?", function (dados) {
+                            if (!("erro" in dados)) {
+                                $("#enderecoCliente").val(dados.logradouro);
+                                $("#bairroCliente").val(dados.bairro);
+                                $("#cidadeCliente").val(dados.localidade);
+                                $("#estadoCliente").val(dados.uf);
+                            }
+                            else {
+                                alert("CEP não encontrado.");
+                            }
+                        });
+                    }
+                    else {
+                        alert("Formato de CEP inválido.");
+                    }
+                }
+                else {
+                    alert("CEP em branco.");
+                }
+            })
+        });
+        
+        //Indice dos produtos
+        var produtoIndex = 0;
+        //Adiciona o produto
+        $(document).on('click', #addProduto, function () {
+            var container = $('#produtosContainer');
+            
+            //Novo produto
+            var novoProduto = `
+                <div class="produtoItem" mb-3>
+                    <div class="row mb-2">
+                        <div class="col-6">
+                            <label class="form-label">Produto:</label>
+                            <div class="input-group">
+                                <input class="form-control" type="text" name="Produtos[${produtoIndex}].Nome"/>
+                                <button type="button" class="btn btn-outline-primary btnBuscarProduto"
+                                    data-bs-toggle="modal" data-bs-target="#modalBuscarProduto">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <label class="form-label">Quantidade:</label>
+                            <input class="form-control" type="number" name="Produtos[${produtoIndex}].Quantidade"/>
+                        </div>
+                        <div class=col-3">
+                            <label class="form-label">Valor  Unitário:</label> 
+                            <input class="form-control" type="number" name="Produtos[${produtoIndex}].PrecoUnitario"/>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Descrição:</label>
+                            <textarea name="Itens[${produtoIndex}].Descricao" class="form-control descricao" placeholder="Descrição"></textarea>
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Valor Total:</label>
+                            <input type="text" class="form-control valor-total" placeholder="Valor Total" readonly>
+                        </div>
+                        <div class="col-2">
+                            <button type="button" class="btn btn-danger remove-produto">Remover</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            //Adiciona o produto
+            container.insertAdjacentHTML('beforeend', novoProduto);
+
+            //Incrementa o índice
+            produtoIndex++;
+        })
+    </script>
+}

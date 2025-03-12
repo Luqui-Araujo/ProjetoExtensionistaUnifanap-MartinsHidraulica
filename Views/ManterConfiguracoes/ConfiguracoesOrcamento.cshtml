@@ -244,7 +244,7 @@
                 tbodyVendedores.append(`
                     <tr>
                         <td>${produto.id}</td>
-                        <td>${produto.nome}</td>
+                        <td class="nome-cell">${produto.nome}</td>
                         <td>
                             <button class="btn btn-secondary editar-tipo-pagamento">
                                 <i class="fas fa-pencil"></i>
@@ -262,7 +262,7 @@
                 tbodyTiposPagamento.append(`
                     <tr>
                         <td>${tipoPagamento.id}</td>
-                        <td>${tipoPagamento.nome}</td>
+                        <td class="nome-cell">${tipoPagamento.nome}</td>
                         <td>
                             <button class="btn btn-secondary editar-vendedor">
                                 <i class="fas fa-pencil"></i>
@@ -295,78 +295,85 @@
                     vendedoresCarregados = response.vendedores;
                     tiposPagamentoCarregados = response.tiposPagamento;
                     preencherTabelas(vendedoresCarregados, tiposPagamentoCarregados);
+
+                    $(document).on('click', '.editar-vendedor', function() {
+                        var cell = $(this).closest('tr').find('.nome-cell');
+                        editarCelula(cell, 'vendedor');
+                    });
+
+                    $(document).on('click', '.editar-tipo-pagamento', function() {
+                        var cell = $(this).closest('tr').find('.nome-cell');
+                        editarCelula(cell, 'tipoPagamento');
+                    });
                 },
             })
         }
-
-        // Function to transform cell into editable field
+        
+        //Editar vendedor e tipo de pagamento
         function editarCelula(cell, tipo) {
-            var valorAtual = cell.text();
-            var id = cell.closest('tr').data('id');
-
-            cell.html(`
-        <div class="input-group">
-            <input type="text" class="form-control form-control-sm" value="${valorAtual}">
-            <button class="btn btn-success btn-sm salvar-edicao" data-tipo="${tipo}" data-id="${id}">
-                <i class="fas fa-check"></i>
-            </button>
-        </div>
-        `);
-
-            // Focus the input
-            cell.find('input').focus();
-
-            // Handle save button click
-            cell.find('.salvar-edicao').on('click', function() {
-                var novoValor = cell.find('input').val();
-                var tipoItem = $(this).data('tipo');
-                var itemId = $(this).data('id');
-
-                salvarEdicao(itemId, novoValor, tipoItem, cell);
-            });
-
-            // Handle enter key press
-            cell.find('input').on('keypress', function(e) {
-                if (e.which === 13) { // Enter key
-                    var novoValor = $(this).val();
-                    salvarEdicao(id, novoValor, tipo, cell);
+            //Texto da linha atual
+            var textoOriginal = cell.text();
+            var row = cell.closest('tr');
+            //Guarda os valores originais para cancelar a edição
+            var actionsCell = row.find('td').eq(2);
+            var originalActions = actionsCell.html();
+            
+            //Cria o input com o valor original
+            var input = $('<input type="text" class="form-control" value="' + textoOriginal + '"/>');
+            cell.html(input);
+            
+            //Botões de ação ao clicar em editar
+            var salvarBtn = $('<button class="btn btn-success me-2" title="Salvar"><i class="fas fa-check"></i></button>');
+            var cancelarBtn = $('<button class="btn btn-danger" title="Cancelar"><i class="fas fa-times"></i></button>');
+            
+            //Salva a edição
+            salvarBtn.on('click', function (){
+                var novoTexto = input.val().trim();
+                var id = row.find('td').first().text().trim();
+                
+                //Definir o endpoint dependendo se for pagamento ou vendedor
+                var url = '';
+                if (tipo === 'vendedor') {
+                    url = '/ManterConfiguracoes/EditarVendedor';
+                } else if (tipo === 'tipoPagamento') {
+                    url = '/ManterConfiguracoes/EditarTipoPagamento';
                 }
-            });
-        }
-
-        // Function to save edited value
-        function salvarEdicao(id, novoNome, tipo, cell) {
-            var url = tipo === 'vendedor' ?
-                '/ManterConfiguracoes/EditarVendedor' :
-                '/ManterConfiguracoes/EditarTipoPagamento';
-
-            var data = tipo === 'vendedor' ?
-                { id: id, nome: novoNome } :
-                { id: id, nome: novoNome };
-
-            $.ajax({
-                url: url,
-                type: 'POST',
-                data: data,
-                headers: {
-                    "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
-                },
-                success: function(response) {
-                    if (response.success) {
-                        toastr.success(response.message);
-                        cell.html(novoNome);
-                    } else {
-                        toastr.error(response.message || "Erro na operação");
-                        cell.html(cell.data('original-value') || "");
+                
+                $.ajax({
+                    url: url, 
+                    type: 'POST',
+                    data: {
+                        id: id,
+                        nome: novoTexto,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success(response.message);
+                            //Atualiza a celula e retorna os botões originais
+                            cell.text(novoTexto);
+                            actionsCell.html(originalActions);
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function() {
+                        toastr.error('Erro ao salvar a alteração');
                     }
-                },
-                error: function(xhr) {
-                    console.error('Erro:', xhr);
-                    toastr.error('Erro ao salvar as alterações');
-                    cell.html(cell.data('original-value') || "");
-                }
+                });
             });
-        }
+            
+            //Cancela a edição
+            cancelarBtn.on('click', function () {
+                cell.text(textoOriginal);
+                actionsCell.html(originalActions);
+            })
+            
+            //Substitui os botões de ação
+            actionsCell.html('');
+            actionsCell.append(salvarBtn);
+            actionsCell.append(cancelarBtn);
+         }
     
     </script>
 }
