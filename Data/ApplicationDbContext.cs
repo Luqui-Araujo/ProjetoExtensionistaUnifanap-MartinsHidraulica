@@ -17,4 +17,6 @@ public class ApplicationDbContext : IdentityDbContext<Usuarios>
     public DbSet<Produto> Produtos { get; set; }
     public DbSet<Vendedores> Vendedores { get; set; }
     public DbSet<TiposPagamento> TiposPagamento { get; set; }
+    public DbSet<ItemOrcamento> ItemOrcamentos { get; set; }
+    public DbSet<Orcamento> Orcamentos { get; set; }
 }

@@ -2,6 +2,8 @@
 @{
     ViewBag.Title = "Empresa";
     Layout = "_Layout";
+    bool temEmpresa = ViewBag.TemEmpresa as bool? ?? false;
+    var empresaExiste = ViewBag.Empresa != null;
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3 mt-3">
@@ -15,7 +17,7 @@
         <h3 style="font-weight: bold">Minha Empresa</h3>
     </div>
     
-    @if (!(ViewBag.TemEmpresa as bool? ?? false))
+    @if (!temEmpresa)
     {
         <div>
             <button class="btn btn-lg btn-primary adicionarEmpresa" type="button"
@@ -102,7 +104,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" id="idEmpresa" name="Id" value="@ViewBag.Empresa.Id">
+                    <input type="hidden" id="idEmpresa" name="Id" value="@(ViewBag.Empresa?.Id ?? 0)">
                     <div class="mb-3">
                         <label for="nomeEmpresa" class="form-label">Nome Empresa:</label>
                         <input type="text" class="form-control" id="nomeEmpresaEdicao" name="NomeEmpresa" required>
@@ -161,7 +163,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <input type="hidden" id="idEmpresaListagemDepartamento" name="IdEmpresa" value="@ViewBag.Empresa.Id"/>
+                <input type="hidden" id="idEmpresaListagemDepartamento" name="IdEmpresa" value="@(ViewBag.Empresa?.Id ?? 0)"/>
                 <table class="table table-striped text-center">
                     <thead>
                     <tr>
@@ -198,7 +200,7 @@
                 </div>
                 <div class="modal-body">
                     <!-- Campo Hidden para o id da empresa -->
-                    <input type="hidden" id="idDepartamentoEmpresa" name="EmpresaId" value="@ViewBag.Empresa.Id"/>
+                    <input type="hidden" id="idDepartamentoEmpresa" name="EmpresaId" value="@(ViewBag.Empresa?.Id ?? 0)"/>
                     <div class="mb-3">
                         <label for="nomeDepartamento" class="form-label">Nome Departamento:</label>
                         <input type="text" class="form-control" id="nomeDepartamento" name="NomeDepartamento" required/>
@@ -475,6 +477,8 @@
         $(document).ready(function () {
             //Ao carregar a página carrega a empresa
             carregarEmpresa();
+            
+            
             
             //Pra não fechar o modal de adicionar departamento tive que fazer por ajax :-:
             //Add Departamento

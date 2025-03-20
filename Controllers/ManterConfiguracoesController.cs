@@ -28,11 +28,9 @@ public class ManterConfiguracoesController : Controller
     [Authorize(Roles = "Administrador")]
     public IActionResult CadastroEmpresa()
     {
-        var temEmpresa = _context.Empresas.Any();
-        ViewBag.TemEmpresa = temEmpresa;
-        //Gambiarra funcional pra pegar o id da empresa na View
         var empresa = _context.Empresas.FirstOrDefault();
         ViewBag.Empresa = empresa;
+        ViewBag.TemEmpresa = empresa != null;
         return View();
     }
 

@@ -10,7 +10,7 @@ public class Orcamento
     public int Id { get; set; }
     
     [Required]
-    public int ClienteId { get; set; }
+    public int? ClienteId { get; set; }
     [ForeignKey("ClienteId")]
     public virtual Cliente Cliente { get; set; }
     public string ClienteNome { get; set; }
@@ -33,20 +33,12 @@ public class Orcamento
     public decimal Desconto { get; set; }
     public decimal Acrescimo { get; set; }
     public decimal Total { get; set; }
-    public string Vedendor { get; set; }
+    public string Vendedor { get; set; }
     public string CondicaoPagamento { get; set; }
     public string? Observacao { get; set; }
     public bool? Aprovado { get; set; }
     public string? Identificacao { get; set; }
-    
-    public string ItensJson { get; set; }
+    public virtual ICollection<ItemOrcamento> Itens { get; set; } = new List<ItemOrcamento>();
 
-    [NotMapped]
-    public List<ItemOrcamento> Itens
-    {
-        get => string.IsNullOrEmpty(ItensJson)
-        ? new List<ItemOrcamento>()
-        :JsonConvert.DeserializeObject<List<ItemOrcamento>>(ItensJson);
-        set => ItensJson = JsonConvert.SerializeObject(value);
-    }
+   
  }

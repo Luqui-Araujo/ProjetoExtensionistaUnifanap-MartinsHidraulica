@@ -5,11 +5,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 
+Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Development");
 var builder = WebApplication.CreateBuilder(args);
 
 // Adicionando DbContext ANTES de builder.Build()
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 
 builder.Services.AddIdentity<Usuarios, IdentityRole>(options =>
     {
@@ -45,15 +47,13 @@ builder.Services.ConfigureApplicationCookie(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+if (builder.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    app.UseDeveloperExceptionPage();
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles(); // Se necessário, utilize esse middleware em vez de MapStaticAssets()
+app.UseStaticFiles(); 
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -63,4 +63,5 @@ app.MapControllerRoute(
     pattern: "{controller=ManterUsuarios}/{action=Login}/{id?}");
 
 
+Console.WriteLine($"Ambiente atual: {Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}");
 app.Run();

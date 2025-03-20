@@ -1,4 +1,5 @@
-﻿using MartinsHidraulica.Models;
+﻿using System.ComponentModel.DataAnnotations;
+using MartinsHidraulica.Models;
 
 namespace MartinsHidraulica.Views.ViewModel;
 
@@ -9,7 +10,6 @@ public class OrcamentoViewModel
     public List<Cliente> Clientes { get; set; }
     
     //Informações da empresa
-    public int EmpresaId { get; set; }
     public string EmpresaNome { get; set; }
     public string EmpresaRazaoSocial { get; set; }
     public string EmpresaCnpj { get; set; }
@@ -35,11 +35,11 @@ public class OrcamentoViewModel
     
     //Lista de vendedores e condições de pagamento
     public List<Vendedores> Vendedores { get; set; }
-    public List<TiposPagamento> TiposPagamento { get; set; }
+    public List<TiposPagamento> CondicoesPagamento { get; set; }
+    public string CondicaoPagamento { get; set; }
     
     //Selecionados
     public Cliente ClienteSelecionado { get; set; }
-    public int EmpresaSelecionadaId { get; set; }
     
     //Lista de produtos
     public List<Produto> Produtos { get; set; }
@@ -53,7 +53,6 @@ public class OrcamentoViewModel
     
     //Informações
     public string? Observacao { get; set; }
-    public List <TiposPagamento> CondicaoPagamentos { get; set; }
     public string Vendedor { get; set; }
     public bool? Aprovado { get; set; }
     public string? Identificacao { get; set; }

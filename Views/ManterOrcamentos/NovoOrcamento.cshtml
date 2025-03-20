@@ -19,60 +19,61 @@
 <hr/>
 
 <form id="gerarOrcamentoForm" action="/ManterOrcamentos/GerarOrcamento" method="POST">
+    @Html.AntiForgeryToken()
     <div class="row">
         <div class="col-6 mb-3">
             <label class="form-label "for="identificacao">Identificação do Orçamento
-                <i class="fas fa-question-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" 
+                <i class="fas fa-question-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top"
                    title="Será usado para pesquisa dos orçamentos, o campo não é obrigatório"></i>
             </label>
             <input class="form-control" type="text" name="Identificacao" id="identificacaoOrcamento" required/>
         </div>
-        
+
         <!-- Campo hidden pra ocupar o espaço -->
         <div class="col-6">
             <input type="hidden"/>
         </div>
-        
+
         <hr/>
         <!-- Informações da Empresa -->
-        <div class="col-6 d-flex flex-column justify-content-center align-items-center" 
+        <div class="col-6 d-flex flex-column justify-content-center align-items-center"
              style="border-right: 1px solid black; border: 1px solid black;">
             <img src="/ManterConfiguracoes/ObterLogo" class="img-fluid" alt="Logo da empresa"/>
         </div>
         <div class="col-6 d-flex flex-column justify-content-center align-items-center"
              style="border: 1px solid black;">
-            <input class="form-control text-center mb-1" type="text" value="@Model.EmpresaRazaoSocial" disabled/>
+            <input class="form-control text-center mb-1" type="text" name="EmpresaNome" value="@Model.EmpresaRazaoSocial" disabled/>
             <div class="input-group">
-                <input class="form-control text-center mb-1" type="text" value="@Model.EmpresaCep" disabled />
-                <input class="form-control text-center mb-1" type="text" value="@Model.EmpresaEndereco" disabled/>
+                <input class="form-control text-center mb-1" type="text" name="EmpresaCep" value="@Model.EmpresaCep" disabled/>
+                <input class="form-control text-center mb-1" type="text" name="EmpresaEndereco" value="@Model.EmpresaEndereco" disabled/>
             </div>
-            <input class="form-control text-center mb-1" type="text" value="@Model.EmpresaComplemento" disabled/>
-            <input class="form-control text-center mb-1" type="text" value="@Model.EmpresaTelefone" disabled/>
-            <input class="form-control text-center" type="text" value="@Model.EmpresaEmail" disabled/>
+            <input class="form-control text-center mb-1" type="text" name="EmpresaComplemento" value="@Model.EmpresaComplemento" disabled/>
+            <input class="form-control text-center mb-1" type="text" name="EmpresaTelefone" value="@Model.EmpresaTelefone" disabled/>
+            <input class="form-control text-center" type="text" name="EmpresaEmail" value="@Model.EmpresaEmail" disabled/>
         </div>
-        
+
         <!-- div pra separar -->
         <div class="col-12 mt-4">
             <input type="hidden"/>
         </div>
-        
+
         <input type="hidden" name="ClienteId" id="idCliente"/>
         <div class="col-6 col-md-4">
-            <label for="nomeCliente" class="form-label">Selecione ou escreva o cliente:
+            <label for="nomeCliente" class="form-label">Cliente:
                 <span class="text-danger font-weight-bold">*</span>
             </label>
             <div class="input-group">
-                <input class="form-control" type="text" name="NomeCliente" id="nomeCliente" required/>
+                <input class="form-control" type="text" name="ClienteNome" id="nomeCliente" required/>
                 <button type="button" class="btn btn-outline-primary"
                         data-bs-toggle="modal"
-                        data-bs-target="#modalPesquisaCliente">
+                        data-bs-target="#buscarClienteModal">
                     <i class="fas fa-search fa-1x"></i>
                 </button>
             </div>
         </div>
         <div class="col-6 col-md-4">
             <label for="telefoneCliente" class="form-label">Telefone:</label>
-            <input class="form-control" type="text" name="TelefoneCliente" id="telefoneCliente"/>
+            <input class="form-control" type="text" name="ClienteTelefone" id="telefoneCliente"/>
         </div>
         <div class="col-6 col-md-4">
             <label for="emailCliente" class="form-label">Email:</label>
@@ -139,7 +140,7 @@
             <label for="condicaoPagamento" class="form-label">Condição de pagamento:</label>
             <select class="form-select" name="CondicaoPagamento" id="condicaoPagamento">
                 <option value="">Selecione um tipo de pagamento...</option>
-                @foreach (var condicao in Model.CondicaoPagamentos)
+                @foreach (var condicao in Model.CondicoesPagamento)
                 {
                     <option value="@condicao.Nome">@condicao.Nome</option>
                 }
@@ -149,14 +150,110 @@
     <hr/>
     <h3 class="text-center">Produtos</h3>
     <div class="d-flex justify-content-start">
-        <button type="button" class="btn btn-primary" id="addProduto">
+        <button type="button" class="btn btn-primary" id="addProduto" title="Adicionar Produto">
             <i class="fas fa-plus"></i>
         </button>
     </div>
     <div id="produtosContainer">
         <!-- Os produtos virão aqui -->
     </div>
+
+    <!-- Resumo Final -->
+    <h3 class="text-center">Resumo</h3>
+    <div class="row">
+        <div class="col-6 col-md-3">
+            <label class="form-label">Subtotal:</label>
+            <input class="form-control" type="text" name="SubTotal" id="subtotal" readonly/>
+        </div>
+        <div class="col-6 col-md-3">
+            <label class="form-label">Desconto</label>
+            <input class="form-control" type="text" name="Desconto" id="desconto" readonly/>
+        </div>
+        <div class="col-6 col-md-3">
+            <label class="form-label">Acréscimo</label>
+            <input class="form-control" type="text" name="Acrescimo" id="acrescimo" readonly/>
+        </div>
+        <div class="col-6 col-md-3">
+            <label class="form-label">Vendedor</label>
+            <select class="form-select" name="Vendedor" id="vendedor" required>
+                <option value="">Selecione um vendedor...</option>
+                @foreach (var vendedor in Model.Vendedores)
+                {
+                    <option value="@vendedor.Nome">@vendedor.Nome</option>
+                }
+            </select>
+        </div>
+        <div class="col-8">
+            <label class="form-label">Observação</label>
+            <textarea class="form-control" name="Observacao" id="observacao"></textarea>
+        </div>
+        <div class="col-4">
+            <label class="form-label">Valor total:</label>
+            <input class="form-control" type="text" name="ValorTotal" id="valorTotal" readonly/>
+        </div>
+    </div>
+    <div class="text-end">
+        <button type="submit" class="btn btn-primary mt-1">
+            <i class="fas fa-save"></i> Gerar PDF
+        </button>
+    </div>
 </form>
+
+<!-- Modais -->
+<!-- Modal de Pesquisa de Cliente -->
+<div class="modal fade" id="buscarClienteModal" tabindex="-1" aria-labelledby="buscarClienteModal" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Buscar Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="inputBuscarCliente" class="form-control mb-3" placeholder="Digite o nome ou CPF/CNPJ do cliente"/>
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>CPF/CNPJ</th>
+                        <th>Ações</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tabelaClientesPesquisa">
+                    <!-- Os clientes virão aqui -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Busca de Produto -->
+<div class="modal fade" id="buscarProdutoModal" tabindex="-1" aria-labelledby="buscarProdutoModal" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Buscar Produto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="inputBuscarProduto" class="form-control mb-3" placeholder="Digite o nome do produto"/>
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Preço</th>
+                        <th>Ações</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tabelaProdutosPesquisa">
+                    <!-- Os produtos virão aqui -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 @section Scripts {
     <script>
@@ -188,57 +285,113 @@
                 else {
                     alert("CEP em branco.");
                 }
-            })
+            });
+            
+            //Valor inicial de desconto e acrescimo também desbloqueia os campos
+            if (!$('#desconto').val()) $('#desconto').val('0');
+            if (!$('#acrescimo').val()) $('#acrescimo').val('0');
+
+            $('#desconto').prop('readonly', false);
+            $('#acrescimo').prop('readonly', false);
+
+            calcularTotais();
         });
         
         //Indice dos produtos
         var produtoIndex = 0;
         //Adiciona o produto
-        $(document).on('click', #addProduto, function () {
+        $(document).on('click', '#addProduto', function () {
             var container = $('#produtosContainer');
             
             //Novo produto
             var novoProduto = `
-                <div class="produtoItem" mb-3>
+                <div class="produtoItem">
                     <div class="row mb-2">
                         <div class="col-6">
                             <label class="form-label">Produto:</label>
                             <div class="input-group">
-                                <input class="form-control" type="text" name="Produtos[${produtoIndex}].Nome"/>
+                                <input class="form-control" type="text" name="Itens[${produtoIndex}].NomeProduto" required/>
                                 <button type="button" class="btn btn-outline-primary btnBuscarProduto"
-                                    data-bs-toggle="modal" data-bs-target="#modalBuscarProduto">
+                                    data-bs-toggle="modal" data-bs-target="#buscarProdutoModal">
                                     <i class="fas fa-search"></i>
                                 </button>
                             </div>
                         </div>
                         <div class="col-3">
                             <label class="form-label">Quantidade:</label>
-                            <input class="form-control" type="number" name="Produtos[${produtoIndex}].Quantidade"/>
+                            <input class="form-control" type="number" name="Itens[${produtoIndex}].Quantidade" required/>
                         </div>
-                        <div class=col-3">
-                            <label class="form-label">Valor  Unitário:</label> 
-                            <input class="form-control" type="number" name="Produtos[${produtoIndex}].PrecoUnitario"/>
+                        <div class="col-3">
+                            <label class="form-label">Unitário:</label> 
+                            <input class="form-control" type="number" name="Itens[${produtoIndex}].PrecoUnitario" required/>
                         </div>
+                    </div>
+                    
+                    <div class="row mb-2">
                         <div class="col-6">
                             <label class="form-label">Descrição:</label>
                             <textarea name="Itens[${produtoIndex}].Descricao" class="form-control descricao" placeholder="Descrição"></textarea>
                         </div>
                         <div class="col-4">
                             <label class="form-label">Valor Total:</label>
-                            <input type="text" class="form-control valor-total" placeholder="Valor Total" readonly>
+                            <input type="text" class="form-control valor-total" name="Itens[${produtoIndex}].Total" placeholder="Valor Total" readonly>
                         </div>
-                        <div class="col-2">
-                            <button type="button" class="btn btn-danger remove-produto">Remover</button>
+                        <div class="col-2 d-flex justify-content-center align-items-center">
+                            <button type="button" class="btn btn-danger remove-produto">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
+             <hr/>
             `;
 
             //Adiciona o produto
-            container.insertAdjacentHTML('beforeend', novoProduto);
+            container.append(novoProduto);
 
             //Incrementa o índice
             produtoIndex++;
+            
+            var $newProduct = $('.produtoItem').last();
+            $newProduct.find('input[name$=".Quantidade"]').val(1);
+            calcularTotais();
         })
+        
+        //Calcula os valores
+        $(document).on('input', '.produtoItem input[name$=".Quantidade"], .produtoItem input[name$=".PrecoUnitario"]', function () {
+            var $row = $(this).closest('.produtoItem');
+            var quantidade = parseFloat($row.find('input[name$=".Quantidade"]').val());
+            var precoUnitario = parseFloat($row.find('input[name$=".PrecoUnitario"]').val()) || 0;
+            var total = quantidade * precoUnitario;
+            
+            $row.find('.valor-total').val(total.toFixed(2));
+            
+            calcularTotais();
+        });
+        
+        //Remove os produtos e recalcula o total
+        $(document).on('click', '.remove-produto', function () {
+            $(this).closest('.produtoItem').remove();
+            calcularTotais();
+        });
+        
+        //Calcula os totais
+        function calcularTotais() {
+            var subtotal = 0;
+            $('.valor-total').each(function () {
+                subtotal += parseFloat($(this).val()) || 0;
+            });
+            
+            var desconto = parseFloat($('#desconto').val()) || 0;
+            var acrescimo = parseFloat($('#acrescimo').val()) || 0;
+            
+            var total = subtotal - desconto + acrescimo;
+            
+            $('#subtotal').val(subtotal.toFixed(2));
+            $('#valorTotal').val(total.toFixed(2));
+        }
+        
+        
+        
     </script>
 }
