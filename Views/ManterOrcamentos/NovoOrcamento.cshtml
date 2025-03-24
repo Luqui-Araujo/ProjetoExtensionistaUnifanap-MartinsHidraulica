@@ -138,7 +138,7 @@
         </div>
         <div class="col-5 mb-3">
             <label for="condicaoPagamento" class="form-label">Condição de pagamento:</label>
-            <select class="form-select" name="CondicaoPagamento" id="condicaoPagamento">
+            <select class="form-select" name="CondicaoPagamento" id="condicaoPagamento" required>
                 <option value="">Selecione um tipo de pagamento...</option>
                 @foreach (var condicao in Model.CondicoesPagamento)
                 {
@@ -166,12 +166,14 @@
             <input class="form-control" type="text" name="SubTotal" id="subtotal" readonly/>
         </div>
         <div class="col-6 col-md-3">
-            <label class="form-label">Desconto</label>
-            <input class="form-control" type="text" name="Desconto" id="desconto" readonly/>
+            <label class="form-label">Desconto (%)</label>
+            <input class="form-control desconto-total" type="text" name="Desconto" id="desconto" readonly
+                   min="1" max="100" step="1"/>
         </div>
         <div class="col-6 col-md-3">
-            <label class="form-label">Acréscimo</label>
-            <input class="form-control" type="text" name="Acrescimo" id="acrescimo" readonly/>
+            <label class="form-label">Acréscimo (%)</label>
+            <input class="form-control acrescimo-total" type="text" name="Acrescimo" id="acrescimo" readonly
+                   min="1" max="100" step="1"/>
         </div>
         <div class="col-6 col-md-3">
             <label class="form-label">Vendedor</label>
@@ -257,6 +259,7 @@
 
 @section Scripts {
     <script>
+        //Assim que inicia a página
         $(document).ready(function () {
             $('[data-bs-toggle="tooltip"]').tooltip();
             
@@ -297,6 +300,43 @@
             calcularTotais();
         });
         
+        //Bloco de seleção do produto
+        let produtoSelecionadoIndex = null;
+
+        $(document).on('click', '.btnBuscarProduto', function () {
+            produtoSelecionadoIndex = $(this).data('index');
+        });
+        
+        $(document).on('input', '.preco-unitario', function () {
+            let valor = $(this).val();
+            
+            valor = valor.replace(/[^0-9,]/g, '');
+            
+            let partes = valor.split(',');
+            if (partes.length > 2) {
+                valor = partes[0] + ',' + partes[1];
+            }
+            
+            $(this).val(valor);
+        });
+        
+        //Bloqueia a digitação de letras
+        $(document).on('keypress', '.preco-unitario, .desconto-total, .acrescimo-total, .quantidade-produto', function (e) {
+            const tecla = String.fromCharCode(e.which);
+            if (!/[0-9,]/.test(tecla)) {
+                e.preventDefault();
+            }
+            
+            if (tecla === ',' && $(this).val().includes(',')) {
+                e.preventDefault();
+            }
+        });
+        
+        //Apos colocar o input calcular
+        $('#desconto, #acrescimo').on('input', function () {
+            calcularTotais();
+        });
+        
         //Indice dos produtos
         var produtoIndex = 0;
         //Adiciona o produto
@@ -312,18 +352,19 @@
                             <div class="input-group">
                                 <input class="form-control" type="text" name="Itens[${produtoIndex}].NomeProduto" required/>
                                 <button type="button" class="btn btn-outline-primary btnBuscarProduto"
-                                    data-bs-toggle="modal" data-bs-target="#buscarProdutoModal">
+                                    data-bs-toggle="modal" data-bs-target="#buscarProdutoModal"
+                                    data-index="${produtoIndex}">
                                     <i class="fas fa-search"></i>
                                 </button>
                             </div>
                         </div>
                         <div class="col-3">
                             <label class="form-label">Quantidade:</label>
-                            <input class="form-control" type="number" name="Itens[${produtoIndex}].Quantidade" required/>
+                            <input class="form-control quantidade-produto" type="number" name="Itens[${produtoIndex}].Quantidade" required/>
                         </div>
                         <div class="col-3">
                             <label class="form-label">Unitário:</label> 
-                            <input class="form-control" type="number" name="Itens[${produtoIndex}].PrecoUnitario" required/>
+                            <input class="form-control preco-unitario" type="text" name="Itens[${produtoIndex}].PrecoUnitario" required/>
                         </div>
                     </div>
                     
@@ -361,9 +402,10 @@
         $(document).on('input', '.produtoItem input[name$=".Quantidade"], .produtoItem input[name$=".PrecoUnitario"]', function () {
             var $row = $(this).closest('.produtoItem');
             var quantidade = parseFloat($row.find('input[name$=".Quantidade"]').val());
-            var precoUnitario = parseFloat($row.find('input[name$=".PrecoUnitario"]').val()) || 0;
+            var precoUnitarioStr = $row.find('input[name$=".PrecoUnitario"]').val().replace(',', '.');
+            var precoUnitario = parseFloat(precoUnitarioStr) || 0;
+
             var total = quantidade * precoUnitario;
-            
             $row.find('.valor-total').val(total.toFixed(2));
             
             calcularTotais();
@@ -377,21 +419,137 @@
         
         //Calcula os totais
         function calcularTotais() {
-            var subtotal = 0;
+            let subtotal = 0;
             $('.valor-total').each(function () {
                 subtotal += parseFloat($(this).val()) || 0;
             });
-            
-            var desconto = parseFloat($('#desconto').val()) || 0;
-            var acrescimo = parseFloat($('#acrescimo').val()) || 0;
-            
-            var total = subtotal - desconto + acrescimo;
-            
+
+            // Obter porcentagens de desconto e acréscimo
+            let descontoPerc = parseFloat($('#desconto').val()) || 0;
+            let acrescimoPerc = parseFloat($('#acrescimo').val()) || 0;
+
+            // Calcular valores com base nas porcentagens
+            let descontoValor = subtotal * (descontoPerc / 100);
+            let acrescimoValor = subtotal * (acrescimoPerc / 100);
+
+            // Calcular total final
+            let total = subtotal - descontoValor + acrescimoValor;
+
+            // Atualizar os campos
             $('#subtotal').val(subtotal.toFixed(2));
             $('#valorTotal').val(total.toFixed(2));
         }
         
+        //Busca de clientes
+        $('#inputBuscarCliente').on('input', function () {
+            const termo = $(this).val();
+            $.ajax({
+                url: '/ManterOrcamentos/BuscarClientes',
+                data: {termo},
+                success: function (clientes) {
+                    const tabela = $('#tabelaClientesPesquisa');
+                    tabela.empty();
+                    
+                    clientes.forEach(c => {
+                        tabela.append(
+                            `
+                                <tr>
+                                    <td>${c.nome}</td>
+                                    <td>${c.cpfCnpj}</td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-success selecionar-cliente"
+                                            data-id="${c.id}"
+                                            data-nome="${c.nome}"
+                                            data-telefone="${c.telefone}"
+                                            data-email="${c.email}"
+                                            data-cpf="${c.cpfCnpj}"
+                                            data-inscricao="${c.inscricaoEstadual}"
+                                            data-cep="${c.cep}"
+                                            data-cidade="${c.cidade}"
+                                            data-estado="${c.estado}"
+                                            data-bairro="${c.bairro}"
+                                            data-endereco="${c.endereco}">
+                                            Selecionar
+                                        </button>
+                                    </td>
+                                </tr>
+                            `
+                        );
+                    });
+                }
+            });
+        });
+        //Preenche os campos do cliente
+        $(document).on('click', '.selecionar-cliente', function () {
+            $('#idCliente').val($(this).data('id'));
+            $('#nomeCliente').val($(this).data('nome'));
+            $('#telefoneCliente').val($(this).data('telefone'));
+            $('#emailCliente').val($(this).data('email'));
+            $('#cpfCnpjCliente').val($(this).data('cpf'));
+            $('#inscricaoEstadualCliente').val($(this).data('inscricao'));
+            $('#cepCliente').val($(this).data('cep'));
+            $('#cidadeCliente').val($(this).data('cidade'));
+            $('#estadoCliente').val($(this).data('estado'));
+            $('#bairroCliente').val($(this).data('bairro'));
+            $('#enderecoCliente').val($(this).data('endereco'));
+
+            $('#buscarClienteModal').modal('hide');
+        });
+
+        //Busca de produtos
+        $('#inputBuscarProduto').on('input', function () {
+            const termo = $(this).val();
+            $.ajax({
+                url: '/ManterOrcamentos/BuscarProdutos',
+                data: {termo},
+                success: function (produtos) {
+                    const tabela = $('#tabelaProdutosPesquisa');
+                    tabela.empty();
+                    
+                    produtos.forEach(p => {
+                        tabela.append(
+                            `
+                                <tr>
+                                    <td>${p.nome}</td>
+                                    <td>${p.preco}</td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-success selecionar-produto"
+                                            data-id='${p.id}'
+                                            data-nome='${p.nome}'
+                                            data-preco='${p.preco}'
+                                            data-descricao='${p.descricao}'
+                                            >
+                                            Selecionar
+                                        </button>
+                                    </td>
+                                </tr>
+                            `
+                        );
+                    });
+                }
+            });
+        });
+        //Preenche os campos do produto
+        $(document).on('click', '.selecionar-produto', function () {
+            let nome = $(this).data('nome');
+            let preco = $(this).data('preco');
+            let descricao = $(this).data('descricao');
+
+            let $row = $('.produtoItem').eq(produtoSelecionadoIndex);
+            $row.find('input[name$=".NomeProduto"]').val(nome);
+            $row.find('input[name$=".PrecoUnitario"]').val(preco.toString().replace('.', ','));
+            $row.find('textarea[name$=".Descricao"]').val(descricao);
+
+            // força o cálculo do total do item
+            let quantidade = parseFloat($row.find('input[name$=".Quantidade"]').val()) || 1;
+            let total = quantidade * parseFloat(preco);
+            $row.find('.valor-total').val(total.toFixed(2));
+
+            calcularTotais();
+            $('#buscarProdutoModal').modal('hide');
+        });
         
         
+    
     </script>
 }

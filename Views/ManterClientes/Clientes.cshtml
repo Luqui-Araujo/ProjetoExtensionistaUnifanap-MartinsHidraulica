@@ -81,25 +81,23 @@
                     </div>
                     
                     <div class="row">
+                        <div class="col-6 mb-3">
+                            <label for="cep" class="form-label">CEP:</label>
+                            <input type="text" class="form-control" id="cep" name="Cep">
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label for="bairro" class="form-label">Bairro:</label>
+                            <input type="text" class="form-control" id="bairro" name="Bairro">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
                         <div class="col-12 mb-3">
                             <label for="endereco" class="form-label">Endereço:</label>
                             <input type="text" class="form-control" id="endereco" name="Endereco">
                         </div>
                     </div>
                     
-                    <div class="row">
-                        
-                        <div class="col-6 mb-3">
-                            <label for="cep" class="form-label">CEP:</label>
-                            <input type="text" class="form-control" id="cep" name="Cep">
-                        </div>
-
-                        <div class="col-6 mb-3">
-                            <label for="bairro" class="form-label">Bairro:</label>
-                            <input type="text" class="form-control" id="bairro" name="Bairro">
-                        </div>
-
-                    </div>
                     
                     <div class="row">
                         <div class="col-6 mb-3">
@@ -108,7 +106,36 @@
                         </div>
                         <div class="col-6 mb-3">
                             <label for="estado" class="form-label">Estado:</label>
-                            <input type="text" class="form-control" id="estado" name="Estado">
+                            <select type="text" class="form-control" id="estado" name="Estado">
+                                <option value="">Selecione o estado...</option>
+                                <option value="AC">AC</option>
+                                <option value="AL">AL</option>
+                                <option value="AP">AP</option>
+                                <option value="AM">AM</option>
+                                <option value="BA">BA</option>
+                                <option value="CE">CE</option>
+                                <option value="DF">DF</option>
+                                <option value="ES">ES</option>
+                                <option value="GO">GO</option>
+                                <option value="MA">MA</option>
+                                <option value="MS">MS</option>
+                                <option value="MT">MT</option>
+                                <option value="MG">MG</option>
+                                <option value="PA">PA</option>
+                                <option value="PB">PB</option>
+                                <option value="PR">PR</option>
+                                <option value="PE">PE</option>
+                                <option value="PI">PI</option>
+                                <option value="RJ">RJ</option>
+                                <option value="RN">RN</option>
+                                <option value="RS">RS</option>
+                                <option value="RO">RO</option>
+                                <option value="RR">RR</option>
+                                <option value="SC">SC</option>
+                                <option value="SP">SP</option>
+                                <option value="SE">SE</option>
+                                <option value="TO">TO</option>
+                            </select>
                         </div>
                     </div>
                     <div class="mb-3">
@@ -180,14 +207,15 @@
                             <input type="text" class="form-control" id="inscricaoEstadualClienteEdicao" name="InscricaoEstadual"/>
                         </div>
 
-                        <div class="col-6 mb-3">
-                            <label for="endereco" class="form-label">Endereço:</label>
-                            <input type="text" class="form-control" id="enderecoClienteEdicao" name="Endereco">
-                        </div>
 
                         <div class="col-6 mb-3">
                             <label for="cep" class="form-label">CEP:</label>
                             <input type="text" class="form-control" id="cepClienteEdicao" name="Cep">
+                        </div>
+                        
+                        <div class="col-6 mb-3">
+                            <label for="endereco" class="form-label">Endereço:</label>
+                            <input type="text" class="form-control" id="enderecoClienteEdicao" name="Endereco">
                         </div>
 
                         <div class="col-6 mb-3">
@@ -330,6 +358,30 @@
             var button = $(event.relatedTarget); // Captura o botão que acionou o modal
             var id = button.attr('data-id'); // Obtém o ID diretamente do atributo
 
+            //Puxa as informações do endereço pelo CEP
+            $('#cepClienteEdicao').on("blur", function () {
+                var cep = $(this).val().replace(/\D/g, '');
+                if (cep != "") {
+                    var validacep = /^[0-9]{8}$/;
+                    if (validacep.test(cep)) {
+                        $.getJSON("https://viacep.com.br/ws/" + cep + "/json/?callback=?", function (dados) {
+                            if (!("erro" in dados)) {
+                                $("#enderecoClienteEdicao").val(dados.logradouro);
+                                $("#bairroClienteEdicao").val(dados.bairro);
+                                $("#cidadeClienteEdicao").val(dados.localidade);
+                                $("#estadoClienteEdicao").val(dados.uf);
+                            } else {
+                                alert("CEP não encontrado.");
+                            }
+                        });
+                    } else {
+                        alert("Formato de CEP inválido.");
+                    }
+                } else {
+                    alert("CEP em branco.");
+                }
+            });
+
             if (!id) {
                 console.error(id);
                 return;
@@ -365,9 +417,34 @@
         
         var clientesCarregados = [];
         
+        //Ao carregar a página
         $(document).ready(function () {
             carregarClientesAtivos();
 
+            //Puxa as informações do endereço pelo CEP
+            $('#cep').on("blur", function () {
+                var cep = $(this).val().replace(/\D/g, '');
+                if (cep != "") {
+                    var validacep = /^[0-9]{8}$/;
+                    if (validacep.test(cep)) {
+                        $.getJSON("https://viacep.com.br/ws/" + cep + "/json/?callback=?", function (dados) {
+                            if (!("erro" in dados)) {
+                                $("#endereco").val(dados.logradouro);
+                                $("#bairro").val(dados.bairro);
+                                $("#cidade").val(dados.localidade);
+                                $("#estado").val(dados.uf);
+                            } else {
+                                alert("CEP não encontrado.");
+                            }
+                        });
+                    } else {
+                        alert("Formato de CEP inválido.");
+                    }
+                } else {
+                    alert("CEP em branco.");
+                }
+            });
+            
             //Evento de pesquisa
             $('#searchInput').on('input', function () {
                 var termo = $(this).val().toLowerCase();
@@ -415,6 +492,7 @@
                     }
                 })
             })
+            
         });
 
         //Inativar usuários

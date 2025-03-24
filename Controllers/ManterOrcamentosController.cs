@@ -74,11 +74,14 @@ public class ManterOrcamentosController : Controller
         // Calculate totals safely
         decimal subtotal = viewModel.Itens.Sum(i => i.Quantidade * i.PrecoUnitario);
     
-        // Get discount and additional values from form (they are entered as actual values, not percentages)
-        decimal desconto = Convert.ToDecimal(viewModel.Desconto);
-        decimal acrescimo = Convert.ToDecimal(viewModel.Acrescimo);
-        decimal total = subtotal - viewModel.Desconto + viewModel.Acrescimo;
+        // Calcular desconto e acréscimo como percentuais
+        decimal descontoPerc = Convert.ToDecimal(viewModel.Desconto);
+        decimal acrescimoPerc = Convert.ToDecimal(viewModel.Acrescimo);
 
+        decimal descontoValor = subtotal * (descontoPerc / 100);
+        decimal acrescimoValor = subtotal * (acrescimoPerc / 100);
+        decimal total = subtotal - descontoValor + acrescimoValor;
+        
         var empresa = _context.Empresas.FirstOrDefault();
     
         var novoOrcamento = new Orcamento
@@ -97,8 +100,8 @@ public class ManterOrcamentosController : Controller
             IdEmpresa = empresa?.Id ?? 0,
             DataOrcamento = DateTime.UtcNow,
             Subtotal = subtotal,
-            Desconto = desconto,
-            Acrescimo = acrescimo,
+            Desconto = descontoValor,
+            Acrescimo = acrescimoValor,
             Total = total,
             Vendedor = viewModel.Vendedor,
             CondicaoPagamento = viewModel.CondicaoPagamento, // Use string value, not collection
@@ -262,7 +265,7 @@ public class ManterOrcamentosController : Controller
                     document.Add(tableOrcamento);
                     
                     //Tabela produto
-                    var tableProdutos = new Table(new float[] {1, 3, 1, 1,})
+                    var tableProdutos = new Table(new float[] {1, 5, 1, 1,})
                         .UseAllAvailableWidth()
                         .SetWidth(UnitValue.CreatePercentValue(100));
                     
@@ -331,7 +334,61 @@ public class ManterOrcamentosController : Controller
         }
     }
 
+    //Pesquisa de clientes e produtos
+    [HttpGet]
+    public JsonResult BuscarClientes(string termo)
+    {
+        if (string.IsNullOrEmpty(termo))
+        {
+            return Json(new List<object>());
+        }
+        
+        var termoLower = termo.ToLower();
+        
+        var clientes = _context.Clientes
+            .Where(c => c.Nome.ToLower().Contains(termoLower) || c.CpfCnpj.ToLower().Contains(termoLower) && c.Ativo == true)
+            .Select(c => new
+            {
+                c.Id,
+                c.Nome,
+                c.CpfCnpj,
+                c.InscricaoEstadual,
+                c.Telefone,
+                c.Email,
+                c.Cep,
+                c.Cidade,
+                c.Estado,
+                c.Bairro,
+                c.Endereco
+            })
+            .ToList();
+        
+        return Json(clientes);
+    }
     
+    [HttpGet]
+    public JsonResult BuscarProdutos(string termo)
+    {
+        if (string.IsNullOrEmpty(termo))
+        {
+            return Json(new List<object>());
+        }
+        
+        var termoLower = termo.ToLower();
+        
+        var produtos = _context.Produtos
+            .Where(p => p.Nome.ToLower().Contains(termoLower) && p.Ativo == true)
+            .Select(p => new
+            {
+                p.Id,
+                p.Nome,
+                p.Descricao,
+                p.Preco
+            })
+            .ToList();
+        
+        return Json(produtos);
+    }
     
     
 }
