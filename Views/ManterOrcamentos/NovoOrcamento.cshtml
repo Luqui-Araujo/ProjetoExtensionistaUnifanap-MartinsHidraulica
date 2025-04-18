@@ -24,9 +24,10 @@
         <div class="col-6 mb-3">
             <label class="form-label "for="identificacao">Identificação do Orçamento
                 <i class="fas fa-question-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top"
-                   title="Será usado para pesquisa dos orçamentos, o campo não é obrigatório"></i>
+                   title="Será usado para pesquisa dos orçamentos, o campo é obrigatório caso o cliente
+                        não esteja cadastrado."></i>
             </label>
-            <input class="form-control" type="text" name="Identificacao" id="identificacaoOrcamento" required/>
+            <input class="form-control" type="text" name="Identificacao" id="identificacaoOrcamento"/>
         </div>
 
         <!-- Campo hidden pra ocupar o espaço -->
@@ -81,7 +82,7 @@
         </div>
         <div class="col-6">
             <label for="cpfCnpjCliente" class="form-label">CPF / CNPJ:</label>
-            <input class="form-control" type="text" name="ClienteCpfCnpj" id="cpfCnpjCliente"/>
+            <input class="form-control" type="text" name="ClienteCpfCnpj" id="cpfCnpjCliente" maxlength="18"/>
         </div>
         <div class="col-6">
             <label for="inscricaoEstadualCliente" class="form-label">Inscrição Estadual:</label>
@@ -256,11 +257,25 @@
     </div>
 </div>
 
-
 @section Scripts {
     <script>
         //Assim que inicia a página
         $(document).ready(function () {
+
+            //Mascáras de formatação
+            $('#telefoneCliente').mask('(00) 00000-0000');
+            $('#cepCliente').mask('00000-0000');
+            $('#inscricaoEstadualCliente').mask('000.000.000.000'); // Pode ajustar se tiver outro formato
+            $('#emailCliente').on('blur', function () {
+                let email = $(this).val();
+                let regex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+                if (!regex.test(email)) {
+                    toastr.error("E-mail inválido");
+                    $(this).focus();
+                }
+            });
+            
+            //Liga a tooltip
             $('[data-bs-toggle="tooltip"]').tooltip();
             
             //Puxa as informações do endereço pelo CEP
@@ -298,15 +313,18 @@
             $('#acrescimo').prop('readonly', false);
 
             calcularTotais();
+            
         });
         
         //Bloco de seleção do produto
         let produtoSelecionadoIndex = null;
 
+        //Ao abrir o modal de busca de produto, seta o index do produto
         $(document).on('click', '.btnBuscarProduto', function () {
             produtoSelecionadoIndex = $(this).data('index');
         });
         
+        //Validação para aceitar a virgula como separador decimal
         $(document).on('input', '.preco-unitario', function () {
             let valor = $(this).val();
             
@@ -529,6 +547,7 @@
                 }
             });
         });
+        
         //Preenche os campos do produto
         $(document).on('click', '.selecionar-produto', function () {
             let nome = $(this).data('nome');
@@ -549,7 +568,105 @@
             $('#buscarProdutoModal').modal('hide');
         });
         
+        //Valida se o cliente está preenchido com clienteId
+        $('#gerarOrcamentoForm').on('submit', function (e) {
+            const clienteId = $('#idCliente').val();   
+            const identificacao = $('#identificacaoOrcamento').val();
+            
+            if (!clienteId && (!identificacao || identificacao.trim() === "")) {
+                e.preventDefault();
+                toastr.error("Para clientes não cadastrados informe a identificação do orçamento.");
+                $('#identificacaoOrcamento').focus();
+            }
+
+            // Verificação se há pelo menos 1 produto
+            if ($('.produtoItem').length === 0) {
+                e.preventDefault();
+                toastr.error("É necessário incluir ao menos um produto no orçamento.");
+            }
+        });
         
-    
+        //Caso o usuário mude o nome do cliente, limpa o id
+        $('#nomeCliente').on('input', function () {
+            $('#idCliente').val('');
+        });
+        
+        //Validações
+        //Validação de CPF e CNPJ
+        function validarCpfCnpj(valor) {
+            valor = valor.replace(/\D/g, '');
+
+            if (valor.length === 11) {
+                return validarCPF(valor);
+            } else if (valor.length === 14) {
+                return validarCNPJ(valor);
+            }
+            return false;
+        }
+
+        //Calc validação CPF
+        function validarCPF(cpf) {
+            let soma = 0;
+            if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
+
+            for (let i = 0; i < 9; i++) {
+                soma += parseInt(cpf.charAt(i)) * (10 - i);
+            }
+
+            let resto = soma % 11;
+            let digito1 = resto < 2 ? 0 : 11 - resto;
+
+            soma = 0;
+            for (let i = 0; i < 10; i++) {
+                soma += parseInt(cpf.charAt(i)) * (11 - i);
+            }
+
+            resto = soma % 11;
+            let digito2 = resto < 2 ? 0 : 11 - resto;
+
+            return digito1 === parseInt(cpf.charAt(9)) && digito2 === parseInt(cpf.charAt(10));
+        }
+        
+        //Calc validação CNPJ
+        function validarCNPJ(cnpj) {
+            if (cnpj.length !== 14 || /^(\d)\1+$/.test(cnpj)) return false;
+
+            let tamanho = cnpj.length - 2
+            let numeros = cnpj.substring(0, tamanho);
+            let digitos = cnpj.substring(tamanho);
+            let soma = 0;
+            let pos = tamanho - 7;
+
+            for (let i = tamanho; i >= 1; i--) {
+                soma += numeros.charAt(tamanho - i) * pos--;
+                if (pos < 2) pos = 9;
+            }
+
+            let resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+            if (resultado !== parseInt(digitos.charAt(0))) return false;
+
+            tamanho++;
+            numeros = cnpj.substring(0, tamanho);
+            soma = 0;
+            pos = tamanho - 7;
+
+            for (let i = tamanho; i >= 1; i--) {
+                soma += numeros.charAt(tamanho - i) * pos--;
+                if (pos < 2) pos = 9;
+            }
+
+            resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+            return resultado === parseInt(digitos.charAt(1));
+        }
+
+        $('#cpfCnpjCliente').on('blur', function () {
+            const valor = $(this).val();
+            if (!validarCpfCnpj(valor)) {
+                toastr.error("CPF ou CNPJ inválido!");
+                $(this).focus();
+            }
+        });
+        
+        
     </script>
 }

@@ -5,6 +5,8 @@ namespace MartinsHidraulica.Views.ViewModel;
 
 public class OrcamentoViewModel
 {
+    public int Id { get; set; }    
+    
     //Lista de empresas e clientes cadastrados
     public List<Empresa> Empresas { get; set; }
     public List<Cliente> Clientes { get; set; }

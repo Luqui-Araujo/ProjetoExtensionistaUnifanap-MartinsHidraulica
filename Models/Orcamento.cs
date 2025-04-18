@@ -9,7 +9,6 @@ public class Orcamento
     [Key]
     public int Id { get; set; }
     
-    [Required]
     public int? ClienteId { get; set; }
     [ForeignKey("ClienteId")]
     public virtual Cliente Cliente { get; set; }
@@ -28,7 +27,7 @@ public class Orcamento
     [ForeignKey("IdEmpresa")]
     public Empresa Empresa { get; set; }
     
-    public DateTime DataOrcamento { get; set; }
+    public DateTimeOffset DataOrcamento { get; set; }
     public decimal Subtotal { get; set; }
     public decimal Desconto { get; set; }
     public decimal Acrescimo { get; set; }

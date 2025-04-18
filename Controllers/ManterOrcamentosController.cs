@@ -9,14 +9,15 @@ using iText.IO.Font.Constants;
 using iText.IO.Image;
 using iText.Kernel.Font;
 using iText.Kernel.Geom;
-using iText.Kernel.Colors;
-using iText.Kernel.Pdf.Canvas.Draw;
 using iText.Layout;
 using iText.Layout.Element; // Para elementos como parágrafos, tabelas, etc.
 using iText.Layout.Properties;
 using Border = iText.Layout.Borders.Border;
 using Cell = iText.Layout.Element.Cell;
 using Table = iText.Layout.Element.Table;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Linq.Expressions;
 
 namespace MartinsHidraulica.Controllers;
 
@@ -65,11 +66,17 @@ public class ManterOrcamentosController : Controller
     
     //Gera o orçamento com os dados da View
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public IActionResult GerarOrcamento(OrcamentoViewModel viewModel)
-    {
-        // Ensure Itens is not null to prevent errors
-        if (viewModel.Itens == null)
-            viewModel.Itens = new List<ItemOrcamento>();
+    {   
+        var empresa = _context.Empresas
+            .FirstOrDefault();
+        
+        // Verifica se tem ao menos 1 item
+        if (viewModel.Itens == null || !viewModel.Itens.Any())
+        {
+            return Json (new {success = false, message = "É necessário incluir ao menos um produto no orçamento."});
+        }
         
         // Calculate totals safely
         decimal subtotal = viewModel.Itens.Sum(i => i.Quantidade * i.PrecoUnitario);
@@ -82,7 +89,6 @@ public class ManterOrcamentosController : Controller
         decimal acrescimoValor = subtotal * (acrescimoPerc / 100);
         decimal total = subtotal - descontoValor + acrescimoValor;
         
-        var empresa = _context.Empresas.FirstOrDefault();
     
         var novoOrcamento = new Orcamento
         {
@@ -98,7 +104,7 @@ public class ManterOrcamentosController : Controller
             ClienteCidade = viewModel.ClienteCidade,
             ClienteBairro = viewModel.ClienteBairro,
             IdEmpresa = empresa?.Id ?? 0,
-            DataOrcamento = DateTime.UtcNow,
+            DataOrcamento = DateTimeOffset.UtcNow,
             Subtotal = subtotal,
             Desconto = descontoValor,
             Acrescimo = acrescimoValor,
@@ -126,6 +132,7 @@ public class ManterOrcamentosController : Controller
         //Pega os dados com as relações
         var orcamento = _context.Orcamentos
             .Include(o => o.Empresa)
+            .Include(o => o.Itens)
             .FirstOrDefault(o => o.Id == id);
 
         if (orcamento == null)
@@ -289,7 +296,8 @@ public class ManterOrcamentosController : Controller
                     int quantidadeTotalProdutos = orcamento.Itens.Sum(itens => itens.Quantidade);
                     var tabelaValores = new Table(new float[]{1, 2, 1, 1, 2})
                         .UseAllAvailableWidth()
-                        .SetWidth(UnitValue.CreatePercentValue(100));
+                        .SetWidth(UnitValue.CreatePercentValue(100))
+                        .SetMarginTop(5);
 
                     tabelaValores.AddCell(new Cell().Add(new Paragraph($"Total de itens: {quantidadeTotalProdutos}"))).SetFontSize(10);
                     tabelaValores.AddCell(new Cell().Add(new Paragraph($"Subtotal: {orcamento.Subtotal.ToString("C")}"))).SetFontSize(10);
@@ -332,6 +340,107 @@ public class ManterOrcamentosController : Controller
             //Retorna o arquivo PDF direto da memoryStream
             return File(stream.ToArray(), "application/pdf", $"Orcamento_{orcamento.Id}_{orcamento.ClienteNome.Replace(" ", "_")}.pdf");
         }
+    }
+
+    //Obtem um orçamento específico
+    [HttpGet]
+    public IActionResult ObterOrcamento(int id)
+    {
+        
+        var orcamento = _context.Orcamentos
+            .Include(o => o.Itens)
+            .FirstOrDefault(o => o.Id == id);
+
+        if (orcamento == null)
+        {
+            return NotFound();
+        }
+
+        decimal subtotal = orcamento.Subtotal > 0 ? orcamento.Subtotal : 1;
+        
+        var dto = new
+        {
+            orcamento.Id,
+            orcamento.Identificacao,
+            orcamento.ClienteNome,
+            orcamento.Vendedor,
+            orcamento.CondicaoPagamento,
+            orcamento.Observacao,
+            
+            Desconto = Math.Round((orcamento.Desconto / subtotal) * 100, 2),
+            Acrescimo = Math.Round((orcamento.Acrescimo / subtotal) * 100, 2),
+            
+            orcamento.Subtotal,
+            Itens = orcamento.Itens.Select(i => new
+            {
+                i.Id,
+                i.ProdutoId,
+                i.NomeProduto,
+                i.Descricao,
+                i.PrecoUnitario,
+                i.Quantidade
+            }).ToList()
+        };
+
+        return Json(dto);
+    }
+    
+    //Carrega pro front as opções de vendedores e condições de pagamento
+    [HttpGet]
+    public JsonResult OpcoesVendedoresCondicoes()
+    {
+        var vendedores = _context.Vendedores
+            .Where(v => v.Ativo)
+            .Select(v => v.Nome)
+            .ToList();
+
+        var condicoes = _context.TiposPagamento
+            .Where(c => c.Ativo)
+            .Select(c => c.Nome)
+            .ToList();
+
+        return Json(new { vendedores, condicoes });
+    }
+    
+    //Salva a edição de orçamento
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult AtualizarOrcamento([FromBody] OrcamentoViewModel vm)
+    {
+        if (vm == null || vm.Id == 0)
+        {
+            return BadRequest("Dados inválidos recebidos.");
+        }
+        
+        var orc = _context.Orcamentos
+            .Include(o => o.Itens)
+            .FirstOrDefault(o => o.Id == vm.Id);
+        
+        if (orc == null) return BadRequest("Orçamento não encontrado");
+
+        // Atualiza campos simples
+        orc.Identificacao = vm.Identificacao;
+        orc.ClienteNome = vm.ClienteNome;
+        orc.Vendedor = vm.Vendedor;
+        orc.CondicaoPagamento = vm.CondicaoPagamento;
+        orc.Observacao = vm.Observacao;
+        
+        // Sincroniza itens
+        _context.ItemOrcamentos.RemoveRange(orc.Itens);          // jeito simples
+        orc.Itens = vm.Itens;                                    // atribui a nova lista
+
+        decimal subtotal = vm.Itens.Sum(i => i.Quantidade * i.PrecoUnitario);
+        decimal descontoValor = subtotal * (vm.Desconto / 100);
+        decimal acrescimoValor = subtotal * (vm.Acrescimo / 100);
+        decimal total = subtotal - descontoValor + acrescimoValor;
+        
+        orc.Subtotal = subtotal;
+        orc.Desconto = descontoValor;
+        orc.Acrescimo = acrescimoValor;
+        orc.Total = total;
+        
+        _context.SaveChanges();
+        return Json(new { success = true, message = "Orçamento atualizado!" });
     }
 
     //Pesquisa de clientes e produtos
@@ -390,5 +499,91 @@ public class ManterOrcamentosController : Controller
         return Json(produtos);
     }
     
+    //Listagem dos orçamentos cadastrados
+    [HttpGet]
+    public IActionResult Orcamentos(string? identificacao, string? nomeCliente, DateTime? dataInicial,
+        DateTime? dataFinal)
+    {
+        var query = _context.Orcamentos.AsQueryable();
+
+        if (!string.IsNullOrEmpty(identificacao))
+        {
+            query = query.Where(o => o.Identificacao != null && o.Identificacao.ToLower().Contains(identificacao.ToLower()));
+        }
+
+        if (!string.IsNullOrEmpty(nomeCliente))
+        {
+            query = query.Where(o => o.ClienteNome.ToLower().Contains(nomeCliente.ToLower()));
+        }
+        
+        if (dataInicial.HasValue)
+        {
+            // Pega o início do dia
+            DateTimeOffset dtIni = dataInicial.Value.Date.ToUniversalTime();
+            query = query.Where(o => o.DataOrcamento >= dtIni);
+        }
+
+        if (dataFinal.HasValue)
+        {
+            // Pega o final do dia
+            DateTimeOffset dtFim = dataFinal.Value.Date.AddDays(1).AddSeconds(-1).ToUniversalTime();
+            query = query.Where(o => o.DataOrcamento <= dtFim);
+        }
+        
+        // Se nenhum filtro, pega os 10 últimos
+        bool filtrosPreenchidos = 
+            !string.IsNullOrEmpty(identificacao) ||
+            !string.IsNullOrEmpty(nomeCliente) ||
+            dataInicial.HasValue ||
+            dataFinal.HasValue;
+        
+        if (!filtrosPreenchidos)
+        {
+            query = query.OrderByDescending(o => o.DataOrcamento).Take(10);
+        }
+
+        var viewModel = new FiltroOrcamentoViewModel
+        {
+            Identificacao = identificacao,
+            NomeCliente = nomeCliente,
+            DataInicial = dataInicial,
+            DataFinal = dataFinal,
+            Orcamentos = query
+                .Include(o => o.Empresa)
+                .ToList()
+        };
+
+        return View(viewModel);
+    }
     
+    //Botoes de aprovar e desaprovar orçamento
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult Aprovar(int id)
+    {
+        var orcamento = _context.Orcamentos.FirstOrDefault(o => o.Id == id);
+        if (orcamento != null)
+        {
+            orcamento.Aprovado = true;
+            _context.SaveChanges();
+            return Json(new { success = true, message = "Orcamento Aprovado com sucesso" });
+        } 
+
+        return BadRequest("Orcamento não encontrado!");
+    }
+    
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult Reprovar(int id)
+    {
+        var orcamento = _context.Orcamentos.FirstOrDefault(o => o.Id == id);
+        if (orcamento != null)
+        {
+            orcamento.Aprovado = false;
+            _context.SaveChanges();
+            return Json(new { success = true, message = "Orcamento Desaprovado" });
+        } 
+
+        return BadRequest("Orcamento não encontrado!");
+    }
 }

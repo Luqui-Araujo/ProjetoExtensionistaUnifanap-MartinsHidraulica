@@ -70,7 +70,7 @@
                         
                         <div class="col-6 mb-3">
                             <label for="cpfCnpj" class="form-label">CPF / CNPJ:</label>
-                            <input type="text" class="form-control" id="cpfCnpj" name="CpfCnpj">
+                            <input type="text" class="form-control" id="cpfCnpj" name="CpfCnpj" maxlength="18">
                         </div>
                         
                         <div class="col-6 mb-3">
@@ -170,7 +170,7 @@
 </table>
 
 <!-- Modal Edição de empresa -->
-<div class="modal fade" id="editarClienteModal" tabindex="1" aria-labelledby="editarClienteModal" aria-hidden="true">
+<div class="modal fade" id="editarClienteModal" tabindex="-1" aria-labelledby="editarClienteModal" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <form id="editarClienteForm" action="/ManterClientes/EditarCliente" method="post" enctype="multipart/form-data">
@@ -199,7 +199,7 @@
 
                         <div class="col-6 mb-3">
                             <label for="cpfCnpj" class="form-label">CPF / CNPJ:</label>
-                            <input type="text" class="form-control" id="cpfCnpjClienteEdicao" name="CpfCnpj">
+                            <input type="text" class="form-control" id="cpfCnpjClienteEdicao" name="CpfCnpj" maxlength="18">
                         </div>
 
                         <div class="col-6 mb-3">
@@ -250,6 +250,48 @@
     </div>
 </div>
 
+<!-- Modal de orçamentos por cliente -->
+<div class="modal fade" id="orcamentosModal" tabindex="-1" aria-labelledby="orcamentosModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="orcamentosModalLabel">Orçamentos do Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col">
+                        <label>Data Inicial:</label>
+                        <input type="date" id="dataInicial" class="form-control" />
+                    </div>
+                    <div class="col">
+                        <label>Data Final:</label>
+                        <input type="date" id="dataFinal" class="form-control" />
+                    </div>
+                    <div class="col d-flex align-items-end">
+                        <button class="btn btn-primary w-100" onclick="carregarOrcamentosDoCliente(clienteSelecionado)">Filtrar</button>
+                    </div>
+                </div>
+                <table class="table table-hover" id="orcamentosTable">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Data</th>
+                        <th>Valor</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- Os dados dos orçamentos serão preenchidos aqui via AJAX -->
+                    </tbody>
+                </table>
+                <div id="paginacaoOrcamentos" class="mt-3 text-center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts
 {
     <script>
@@ -278,7 +320,14 @@
                                     title="Inativar">
                                     <i class="fas fa-minus"></i>
                                  </button>   
-                            
+                                 <button type="button" class="btn btn-sm btn-warning orcamentosCliente"
+                                    data-id="${cliente.id}"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#orcamentosModal"
+                                    title="Orçamentos do cliente"
+                                 >
+                                    <i class="fas fa-file-invoice"></i>
+                                 </button>
                             `:`
                                  <!-- Botões para inativos -->
                                  <button type="submit" class="btn btn-sm btn-success"
@@ -293,6 +342,73 @@
                 tbody.append(row);
             });
         }
+        
+        //Preecher a tabela com os orçamentos do cliente
+        let clienteSelecionado = null;
+
+        function carregarOrcamentosDoCliente(clienteId, pagina = 1) {
+            let dataInicial = $('#dataInicial').val();
+            let dataFinal = $('#dataFinal').val();
+
+            $.ajax({
+                url: '/ManterClientes/ListarOrcamentosDoCliente',
+                type: 'GET',
+                data: {
+                    clienteId: clienteId,
+                    pagina: pagina,
+                    dataInicial: dataInicial,
+                    dataFinal: dataFinal
+                },
+                success: function (res) {
+                    $('#orcamentosTable tbody').empty();
+
+                    res.orcamentos.forEach(function (orc) {
+                        let badgeStatus = '';
+                        if (orc.aprovado === true) {
+                            badgeStatus = '<span class="badge bg-success">Aprovado</span>';
+                        } else if (orc.aprovado === false) {
+                            badgeStatus = '<span class="badge bg-danger">Reprovado</span>';
+                        } else {
+                            badgeStatus = '<span class="badge bg-secondary">Pendente</span>';
+                        }
+
+                        let row = `
+                    <tr>
+                        <td>${orc.id}</td>
+                        <td>${new Date(orc.dataOrcamento).toLocaleDateString('pt-BR')}</td>
+                        <td>${orc.total.toFixed(2)}</td>
+                        <td>${badgeStatus}</td>
+                        <td>
+                            <a href="/ManterOrcamentos/Download/${orc.id}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-download"></i>
+                            </a>
+                            <button class="btn btn-sm btn-success" onclick="AprovarOrcamento(${orc.id})"><i class="fas fa-check"></i></button>
+                            <button class="btn btn-sm btn-danger" onclick="ReprovarOrcamento(${orc.id})"><i class="fas fa-times"></i></button>
+                        </td>
+                    </tr>`;
+                        $('#orcamentosTable tbody').append(row);
+                    });
+
+                    // Paginação
+                    let paginacaoHtml = '';
+                    for (let i = 1; i <= res.totalPaginas; i++) {
+                        paginacaoHtml += `
+                    <button class="btn btn-sm ${res.paginaAtual === i ? 'btn-primary' : 'btn-outline-primary'} me-1"
+                        onclick="carregarOrcamentosDoCliente(${clienteId}, ${i})">${i}</button>`;
+                    }
+                    $('#paginacaoOrcamentos').html(paginacaoHtml);
+                },
+                error: function () {
+                    toastr.error('Erro ao carregar os orçamentos do cliente');
+                }
+            });
+        }
+        
+        //Carregar orçamentos do cliente
+        $(document).on('click', '.orcamentosCliente', function () {
+            clienteSelecionado = $(this).data('id');
+            carregarOrcamentosDoCliente(clienteSelecionado);
+        });
         
         //Carregar clientes ativos
         function carregarClientesAtivos(){
@@ -493,6 +609,14 @@
                 })
             })
             
+            //Máscaras de formatação 
+            //Mascáras de formatação
+            $('#telefoneClienteEdicao').mask('(00) 00000-0000');
+            $('#telefone').mask('(00) 00000-0000');
+            $('#cepClienteEdicao').mask('00000-0000');
+            $('#cep').mask('00000-0000');
+            $('#inscricaoEstadualClienteEdicao').mask('000.000.000.000');
+            $('#inscricaoEstadual').mask('000.000.000.000');
         });
 
         //Inativar usuários
@@ -537,6 +661,42 @@
             })
         }
         
+        //Aprovar ou desaprovar orçamentos
+        function AprovarOrcamento(id){
+            $.ajax({
+                url: `/ManterOrcamentos/Aprovar/${id}`,
+                type: 'POST',
+                data: { id: id },
+                headers: {
+                    "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function () {
+                    toastr.success("Orçamento aprovado");
+                    carregarOrcamentosDoCliente(clienteSelecionado);
+                },
+                error: function (xhr, status, error) {
+                    toastr.error("Erro ao aprovar orçamento");
+                }
+            });
+        }
+
+        function ReprovarOrcamento(id){
+            $.ajax({
+                url: `/ManterOrcamentos/Reprovar`,
+                type: 'POST',
+                data: { id: id },
+                headers: {
+                    "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function () {
+                    toastr.success("Orçamento reprovado");
+                    carregarOrcamentosDoCliente(clienteSelecionado);
+                },
+                error: function (xhr, status, error) {
+                    toastr.error("Erro ao reprovar orçamento");
+                }
+            });
+        }
         
     
     </script>

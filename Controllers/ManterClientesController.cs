@@ -159,5 +159,44 @@ public class ManterClientesController : Controller
         
     }
     
+    //Listare orçamentos do cliente
+    [HttpGet]
+    public IActionResult ListarOrcamentosDoCliente(int clienteId, int pagina = 1, DateTime? dataInicial = null, DateTime? dataFinal = null)
+    {
+        int tamanhoPagina = 10;
+
+        var query = _context.Orcamentos
+            .Where(o => o.ClienteId == clienteId);
+
+        if (dataInicial.HasValue)
+        {
+            // Pega o início do dia
+            DateTimeOffset dtIni = dataInicial.Value.Date.ToUniversalTime();
+            query = query.Where(o => o.DataOrcamento >= dtIni);
+        }
+
+        if (dataFinal.HasValue)
+        {
+            // Pega o final do dia
+            DateTimeOffset dtFim = dataFinal.Value.Date.AddDays(1).AddSeconds(-1).ToUniversalTime();
+            query = query.Where(o => o.DataOrcamento <= dtFim);
+        }
+        
+        var total = query.Count();
+        
+        var orcamentos = query
+            .OrderByDescending(o => o.DataOrcamento)
+            .Skip((pagina - 1) * tamanhoPagina)
+            .Take(tamanhoPagina)
+            .ToList();
+
+        return Json(new
+        {
+            orcamentos,
+            total,
+            paginaAtual = pagina,
+            totalPaginas = (int)Math.Ceiling((double)total / tamanhoPagina)
+        });
+    }
     
 }

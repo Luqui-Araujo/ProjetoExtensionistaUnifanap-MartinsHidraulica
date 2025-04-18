@@ -26,10 +26,11 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
     
     <!-- JQuery e validações -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/jquery.validate.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@3.2.12/dist/jquery.validate.unobtrusive.min.js"></script>
-
+       
     @*Flatpickr para datas*@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -43,7 +44,7 @@
     <nav class="navbar gradiente-personalizado-navbar-cima">
         <div class="container-fluid">
             <a class="navbar-brand" href="/Home/Index">
-                <img src="/ManterConfiguracoes/ObterLogo" alt="Logo" width="250" height="100">
+                <img src="/ManterConfiguracoes/ObterLogo" alt="Logo" width="220" height="100">
             </a>
 
             <!-- Botão de Menu (aparece só em telas menores que md) -->
@@ -103,7 +104,7 @@
                     </li>
                     <li class="nav-item text-center">
                         <a class="nav-link" href="@Url.Action("Produtos", "ManterProdutos")">
-                            <i class="fas fa-screwdriver-wrench fa-3x"></i>
+                            <i class="fas fa-screwdriver-wrench fa-3x" style="color: var(--4);"></i>
                             <p>Produtos / Serviços</p>
                         </a>
                     </li>
@@ -137,7 +138,6 @@
 </div>
 
 <!-- Scripts adicionais -->
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/js/site.js" asp-append-version="true"></script>
 
 @await RenderSectionAsync("Scripts", required: false)

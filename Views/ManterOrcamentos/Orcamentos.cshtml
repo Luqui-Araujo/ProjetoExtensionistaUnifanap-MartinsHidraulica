@@ -1,10 +1,11 @@
-﻿
+﻿@model MartinsHidraulica.Views.ViewModel.FiltroOrcamentoViewModel;
+
 @{
     ViewBag.Title = "Orçamentos";
     Layout = "_Layout";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+<div class="d-flex justify-content-between align-items-center mt-3">
     <div>
         <a href="NovoOrcamento" class="btn btn-primary">
             <i class="fas fa-plus fa-1x"></i>
@@ -15,3 +16,407 @@
         <h3 style="font-weight: bold">Orçamentos</h3>
     </div>
 </div>
+
+<hr/>
+
+<div class="text-center mt-2">
+    <h4 style="font-weight: bold">Pesquisa de orçamentos</h4>
+</div>
+
+<form method="get" class="row mb-3 g-2 mt-2">
+    <div class="col-6 col-md-3">
+        <input name="identificacao" class="form-control" placeholder="Identificacao" value="@Model?.Identificacao"/>
+    </div>
+    <div class="col-6 col-md-3">
+        <input name="nomeCliente" class="form-control" placeholder="Nome Cliente" value="@Model?.NomeCliente"/>
+    </div>
+    <div class="col-4 col-md-2">
+        <input name="dataInicial" type="date" class="form-control" value="@Model?.DataInicial?.ToString("yyyy-MM-dd")"/>
+    </div>
+    <div class="col-4 col-md-2">
+        <input name="dataFinal" type="date" class="form-control"  value="@Model?.DataFinal?.ToString("yyyy-MM-dd")"/>
+    </div>
+    <div class="col-2 col-md-1">
+        <button type="submit" 
+                class="btn btn-primary w-100"
+                title="Pesquisar">
+            <i class="fas fa-search"></i>
+        </button>
+    </div>
+    <div class="col-2 col-md-1">
+        <a href="@Url.Action("Orcamentos", "ManterOrcamentos")" 
+           class="btn btn-secondary w-100"
+           title="Limpar Campos">
+            <i class="fas fa-eraser"></i>
+        </a>
+    </div>
+</form>
+
+<table class="table table-bordered table-striped">
+    <thead>
+    <tr class="row">
+        <th class="col-3">Identificação</th>
+        <th class="col-3">Cliente</th>
+        <th class="col-2">Data</th>
+        <th class="col-1">Valor</th>
+        <th class="col-1">Status</th>
+        <th class="col-2">Ações</th>
+    </tr>
+    </thead>
+    <tbody>
+    @if (Model.Orcamentos != null && Model.Orcamentos.Any())
+    {
+        foreach (var o in Model.Orcamentos)
+        {
+            <tr class="row">
+                <td class="col-3">@o.Identificacao</td>
+                <td class="col-3">@o.ClienteNome</td>
+                <td class="col-2">@o.DataOrcamento.ToString("dd/MM/yyyy")</td>
+                <td class="col-1">@o.Total.ToString("C")</td>
+                <td class="col-1">
+                    @if (o.Aprovado == true)
+                    {
+                        <span class="badge bg-success">Aprovado</span>
+                    }
+                    else if (o.Aprovado == false)
+                    {
+                        <span class="badge bg-danger">Reprovado</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Pendente</span>
+                    }
+                </td>
+                <td class="col-2">
+                    <button type="submit" class="btn btn-sm btn-success"
+                            onclick="AprovarOrcamento(@o.Id)"
+                            title="Aprovar">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button type="submit" class="btn btn-sm btn-danger"
+                            onclick="ReprovarOrcamento(@o.Id)"
+                            title="Reprovar">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <a class="btn btn-sm btn-primary"
+                       href="@Url.Action("Download", "ManterOrcamentos", new { id = o.Id })"
+                       title="Baixar">
+                        <i class="fas fa-download"></i>
+                    </a>
+                    <a class="btn btn-sm btn-secondary"
+                       data-id="@o.Id"
+                       data-bs-toggle="modal"
+                       data-bs-target="#modalEdicaoOrcamento"
+                       onclick="abrirModalEdicao(this)"
+                       title="Editar Orçamento">
+                        <i class="fas fa-pencil"></i>
+                    </a>
+                </td>
+            </tr>
+        }
+    }
+    else
+    {
+        <tr><td colspan="6" class="text-center">Nenhum orçamento encontrado.</td></tr>
+    }
+    </tbody>
+</table>
+
+<!-- Modal de Edição de Orçamento -->
+<div class="modal fade" id="modalEdicaoOrcamento" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <form id="formEditarOrcamento">
+                @Html.AntiForgeryToken()
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Orçamento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <!-- dados principais -->
+                    <input type="hidden" id="orcamentoId" name="Id"/>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="form-label">Identificação</label>
+                            <input class="form-control" name="Identificacao" id="Identificacao">
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label">Cliente</label>
+                            <input class="form-control" name="ClienteNome" id="ClienteNome">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Condição Pagamento</label>
+                            <select class="form-control" name="CondicaoPagamento" id="CondicaoPagamento">
+                                <option value="">Selecione...</option>
+                                
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Vendedor</label>
+                            <select class="form-control" name="Vendedor" id="Vendedor">
+                                <option value="">Selecione...</option>
+                                
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Observação</label>
+                            <textarea class="form-control" name="Observacao" id="Observacao"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- tabela de itens -->
+                    <hr/>
+                    <h6>Itens</h6>
+                    <table class="table table-bordered" id="tabelaItens">
+                        <thead>
+                        <tr>
+                            <th>Qtd.</th>
+                            <th>Produto</th>
+                            <th>Preço</th>
+                            <th>Total</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+
+                    <!-- linha “template” escondida, clonada via JS -->
+                    <template id="templateItem">
+                        <tr>
+                            <td><input class="form-control qty" name="Itens[index].Quantidade" type="number" min="1"></td>
+                            <td>
+                                <input class="form-control prod-nome">
+                                <input type="hidden" class="prod-id" name="Itens[index].ProdutoId">
+                            </td>
+                            <td><input class="form-control price" name="Itens[index].PrecoUnitario" type="number" step="0.01"></td>
+                            <td class="total-cell text-end"></td>
+                            <td><button type="button" class="btn btn-sm btn-danger" onclick="removerLinha(this)"><i class="fas fa-trash"></i></button></td>
+                        </tr>
+                    </template>
+
+                    <button type="button" class="btn btn-outline-primary mt-2" onclick="adicionarLinha()">Adicionar produto</button>
+                </div>
+
+                <hr/>
+                
+                <div class="mb-3 text-center d-flex justify-content-center">
+                    <div class="col-2 me-1">
+                        <label class="form-label" for="Desconto">Desconto</label>
+                        <input class="form-control desconto" id="Desconto" name="Desconto" type="number" min="0">
+                    </div>
+                    <div class="col-2 me-1">
+                        <label class="form-label" for="Acrescimo">Acrescimo</label>
+                        <input class="form-control acrescimo" id="Acrescimo" name="Acrescimo" type="number">
+                    </div>
+                    <div class="col-2">
+                        <label class="form-label" for="Total">Total</label>
+                        <input class="form-control valor" id="Total" name="Total" type="number" disabled>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Salvar alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+       function AprovarOrcamento(id){
+           $.ajax({
+               url: `/ManterOrcamentos/Aprovar/${id}`,
+               type: 'POST',
+               data: { id: id },
+               headers: {
+                   "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
+               },
+               success: function () {
+                   toastr.success("Orçamento aprovado");
+                   setTimeout(function () {
+                       location.reload();
+                   }, 1000);
+               },
+                error: function (xhr, status, error) {
+                     toastr.error("Erro ao aprovar orçamento");
+                }
+           });
+       }
+       
+         function ReprovarOrcamento(id){
+              $.ajax({
+                url: `/ManterOrcamentos/Reprovar`,
+                type: 'POST',
+                data: { id: id },
+                headers: {
+                     "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function () {
+                     toastr.success("Orçamento reprovado");
+                    setTimeout(function () {
+                        location.reload();
+                    }, 1000);
+                },
+                 error: function (xhr, status, error) {
+                        toastr.error("Erro ao reprovar orçamento");
+                 }
+              });
+         }
+         
+         function abrirModalEdicao(btn) {
+             const id = $(btn).data("id");
+
+             $.get(`/ManterOrcamentos/ObterOrcamento/${id}`, function (o) {
+                 // Campos simples
+                 $("#orcamentoId").val(o.id);
+                 $("#Identificacao").val(o.identificacao);
+                 $("#ClienteNome").val(o.clienteNome);
+                 $("#Observacao").val(o.observacao);
+                 $("#Desconto").val(o.desconto);
+                 $("#Acrescimo").val(o.acrescimo);
+
+                 const tbody = $("#tabelaItens tbody").empty();
+                 o.itens.forEach((it, idx) => adicionarLinha(it, idx));
+
+                 // Agora carrega opções de selects
+                 $.get(`/ManterOrcamentos/OpcoesVendedoresCondicoes`, function (res) {
+                     // Preencher Vendedores
+                     const $vendedores = $("#Vendedor").empty().append(`<option value="">Selecione...</option>`);
+                     res.vendedores.forEach(nome => {
+                         const selected = nome === o.vendedor ? 'selected' : '';
+                         $vendedores.append(`<option value="${nome}" ${selected}>${nome}</option>`);
+                     });
+
+                     // Preencher Condições
+                     const $condicoes = $("#CondicaoPagamento").empty().append(`<option value="">Selecione...</option>`);
+                     res.condicoes.forEach(nome => {
+                         const selected = nome === o.condicaoPagamento ? 'selected' : '';
+                         $condicoes.append(`<option value="${nome}" ${selected}>${nome}</option>`);
+                     });
+
+                     // Só abre o modal depois de preencher os selects
+                     $("#modalEdicaoOrcamento").modal('show');
+                 });
+             });
+         }
+
+       function adicionarLinha(item = null, idx = null) {
+           const template = document.querySelector('#templateItem');
+           const $row = $(document.importNode(template.content, true)).find('tr');
+
+           if (idx === null) {
+               idx = $('#tabelaItens tbody tr').length;
+           }
+
+           $row.find('input').each(function () {
+               const name = $(this).attr('name')?.replace('index', idx);
+               if (name) {
+                   $(this).attr('name', name);
+               }
+           });
+
+           if (item) {
+               $row.find('.qty').val(item.quantidade);
+               $row.find('.price').val(item.precoUnitario);
+               $row.find('.prod-nome').val(item.nomeProduto);
+               $row.find('.prod-id').val(item.produtoId);
+               calcularTotalLinha($row);
+           }
+
+           $('#tabelaItens tbody').append($row);
+           calcularTotalGeral();
+       }
+
+       function removerLinha(btn){
+           $(btn).closest('tr').remove();
+           calcularTotalGeral();
+       }
+
+       function calcularTotalLinha($row){
+           const qtd   = parseFloat($row.find('.qty').val())   || 0;
+           const preco = parseFloat($row.find('.price').val()) || 0;
+           const total = qtd * preco;
+           $row.find('.total-cell').text(total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
+
+           calcularTotalGeral();
+       }
+
+       $(document).on('input', '#Desconto, #Acrescimo', function(){
+           calcularTotalGeral();
+       });
+
+       function calcularTotalGeral(){
+           let subtotal = 0;
+
+           $('#tabelaItens tbody tr').each(function(){
+               const qtd = parseFloat($(this).find('.qty').val()) || 0;
+               const preco = parseFloat($(this).find('.price').val()) || 0;
+               subtotal += qtd * preco;
+           });
+
+           const desconto = parseFloat($('#Desconto').val()) || 0;
+           const acrescimo = parseFloat($('#Acrescimo').val()) || 0;
+
+           const descontoValor = subtotal * (desconto / 100);
+           const acrescimoValor = subtotal * (acrescimo / 100);
+           const total = subtotal - descontoValor + acrescimoValor;
+
+           $('#Total').val(total.toFixed(2).replace('.', ','));
+       }
+
+       // recalcula ao digitar
+       $(document).on('input', '.qty, .price', function(){
+           calcularTotalLinha($(this).closest('tr'));
+       });
+
+       function obterDadosFormulario($form) {
+           const itens = [];
+
+           $('#tabelaItens tbody tr').each(function () {
+               const $tr = $(this);
+               const item = {
+                   ProdutoId: $tr.find('.prod-id').val() || null,
+                   NomeProduto: $tr.find('.prod-nome').val(),
+                   Quantidade: parseFloat($tr.find('.qty').val()) || 0,
+                   PrecoUnitario: parseFloat($tr.find('.price').val()) || 0
+               };
+               itens.push(item);
+           });
+
+           return {
+               Id: parseInt($('#orcamentoId').val()),
+               Identificacao: $('#Identificacao').val(),
+               ClienteNome: $('#ClienteNome').val(),
+               Desconto: parseFloat($('#Desconto').val()) || 0,
+               Acrescimo: parseFloat($('#Acrescimo').val()) || 0,
+               Observacao: $('#Observacao').val(),
+               CondicaoPagamento: $('#CondicaoPagamento').val(),
+               Vendedor: $('#Vendedor').val(),
+               Itens: itens 
+           };
+       }
+
+       // envio do formulário de edição
+       $('#formEditarOrcamento').on('submit', function(e){
+           e.preventDefault();
+           const data = obterDadosFormulario($(this)); // serializa inclusive itens
+           $.ajax({
+               url: '/ManterOrcamentos/AtualizarOrcamento',
+               method: 'POST',
+               contentType: 'application/json',
+               headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
+               data: JSON.stringify(data),
+               success: res => {
+                   toastr.success(res.message);
+                   $('#modalEdicaoOrcamento').modal('hide');
+                   setTimeout(()=>location.reload(), 800);
+               },
+               error: () => toastr.error('Erro ao salvar orçamento')
+           });
+       });
+    </script>
+}

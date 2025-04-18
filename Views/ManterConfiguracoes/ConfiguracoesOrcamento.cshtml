@@ -233,24 +233,24 @@
             });
         });
         
-        function preencherTabelas(produtos, tiposPagamento) {
+        function preencherTabelas(vendedores, tiposPagamento) {
             var tbodyVendedores = $('#resultsBodyVendedores');
             var tbodyTiposPagamento = $('#resultsBodyTipoPagamento');
             
             tbodyVendedores.empty();
             tbodyTiposPagamento.empty();
             
-            produtos.forEach(function (produto) {
+            vendedores.forEach(function (vendedor) {
                 tbodyVendedores.append(`
                     <tr>
-                        <td>${produto.id}</td>
-                        <td class="nome-cell">${produto.nome}</td>
+                        <td>${vendedor.id}</td>
+                        <td class="nome-cell">${vendedor.nome}</td>
                         <td>
-                            <button class="btn btn-secondary editar-tipo-pagamento">
+                            <button class="btn btn-secondary editar-vendedor">
                                 <i class="fas fa-pencil"></i>
                             </button>
                             <button class="btn btn-danger"
-                                    onclick="InativarVendedor(${produto.id})">
+                                    onclick="InativarVendedor(${vendedor.id})">
                                 <i class="fas fa-minus"></i>
                             </button>
                         </td>
@@ -264,7 +264,7 @@
                         <td>${tipoPagamento.id}</td>
                         <td class="nome-cell">${tipoPagamento.nome}</td>
                         <td>
-                            <button class="btn btn-secondary editar-vendedor">
+                            <button class="btn btn-secondary editar-tipo-pagamento">
                                 <i class="fas fa-pencil"></i>
                             </button>
                             <button class="btn btn-danger"
