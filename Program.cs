@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 
-Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Development");
+Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
 var builder = WebApplication.CreateBuilder(args);
 
 // Adicionando DbContext ANTES de builder.Build()
