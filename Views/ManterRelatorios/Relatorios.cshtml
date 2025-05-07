@@ -1,0 +1,98 @@
+@model MartinsHidraulica.Views.ViewModel.RelatoriosViewModel
+
+@{
+    ViewBag.Title = "Relatórios";
+    Layout = "_Layout";
+}
+
+<h3 class="mt-3 mb-3 text-center font-weight-bold">Relatórios</h3>
+
+<div class="d-flex justify-content-center mb-4">
+  <form id="formRelatorio" asp-action="Relatorios" method="post" class="w-75">
+    @Html.AntiForgeryToken()
+    <div class="card">
+      <div class="card-header"><h5>Emissão de relatórios</h5></div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label">Selecione o relatório</label>
+          <select asp-for="TipoRelatorio" class="form-control" id="tipoRel">
+            <option value="Clientes">Clientes</option>
+            <option value="Produtos">Produtos</option>
+            <option value="Orcamentos">Orçamentos</option>
+          </select>
+        </div>
+        <div id="filtrosOrc" style="display:none;" class="row mb-3">
+          <div class="col"><label>Data Inicial</label>
+            <input asp-for="DataInicial" type="date" class="form-control"/>
+          </div>
+          <div class="col"><label>Data Final</label>
+            <input asp-for="DataFinal" type="date" class="form-control"/>
+          </div>
+          <div class="col">
+            <label>Cliente</label>
+            <select asp-for="ClienteId" class="form-control">
+              <option value="">-- Todos --</option>
+              @foreach (var c in ViewBag.Clientes)
+              {
+                <option value="@c.Id">@c.Nome</option>
+              }
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Visualizar</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- modal Bootstrap -->
+<div class="modal fade" id="relatorioModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title text-center">Relatório</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <!-- conteúdo via AJAX -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+<script>
+  // mostra/esconde filtros
+  $('#tipoRel').change(function(){
+    $('#filtrosOrc')[this.value === 'Orcamentos' ? 'show' : 'hide']();
+  }).trigger('change');
+
+  // submit via AJAX
+  $('#formRelatorio').submit(e => {
+    e.preventDefault();
+    loadRelatorio(1);
+  });
+
+  const relatorioModalEl = document.getElementById('relatorioModal');
+  const relatorioModal  = new bootstrap.Modal(relatorioModalEl);
+
+  $('#formRelatorio').on('submit', e => {
+    e.preventDefault();
+    loadRelatorio(1);
+  });
+
+  function loadRelatorio(page){
+    const data = $('#formRelatorio').serialize() + '&page=' + page;
+    $.post('@Url.Action("Relatorios")', data, html => {
+      $('#modalBody').html(html);
+      relatorioModal.show();      // usa sempre a MESMA instância
+    });
+  }
+
+  // limpa o corpo quando fechar
+  relatorioModalEl.addEventListener('hidden.bs.modal', () => $('#modalBody').empty());
+</script>
+}

@@ -30,7 +30,7 @@ body {
 
 .gradiente-personalizado-navbar {
   background: linear-gradient(
-    0deg,
+    180deg,
     var(--navbar1),
     var(--navbar2)
     
@@ -38,11 +38,7 @@ body {
 }
 
 .gradiente-personalizado-navbar-cima {
-  background: linear-gradient(
-          90deg,
-          var(--navbar2),
-          var(--navbar1)
-  );
+  background-color: var(--navbar1);
 }
 
 @media (min-width: 768px) {

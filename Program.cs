@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
 
-Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
+Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Development");
 var builder = WebApplication.CreateBuilder(args);
 
 // Adicionando DbContext ANTES de builder.Build()
@@ -44,6 +46,14 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.SlidingExpiration = true;
 });
 
+var supportedCultures = new[] { new CultureInfo("pt-BR") };
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    options.DefaultRequestCulture = new RequestCulture("pt-BR");
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -52,11 +62,14 @@ if (builder.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
 }
 
+app.UseRequestLocalization();
+
 app.UseHttpsRedirection();
 app.UseStaticFiles(); 
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseResponseCaching();
 
 app.MapControllerRoute(
     name: "default",

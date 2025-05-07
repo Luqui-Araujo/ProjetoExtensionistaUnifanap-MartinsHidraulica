@@ -1,0 +1,41 @@
+@model dynamic
+
+<div class="d-flex justify-content-end gap-2 mt-2">
+    <a asp-action="OrcamentosPdf" class="btn btn-danger">
+        <i class="fa-solid fa-file-pdf"></i>
+    </a>
+    <a asp-action="OrcamentosExcel" class="btn btn-success">
+        <i class="fa-solid fa-file-excel"></i>
+    </a>
+</div>
+
+<table class="table table-hover">
+    <thead><tr>
+        <th>ID</th>
+        <th>Cliente</th>
+        <th>Data</th>
+        <th>Desconto</th>
+        <th>Acrescimo</th>
+        <th>Total</th>
+        <th>Cond. Pagamento</th>
+        <th>Vendedor</th>
+    </tr></thead>
+    <tbody>
+    @foreach(var o in Model.Items) {
+        <tr>
+            <td>@o.Id</td>
+            <td>@o.ClienteNome</td>
+            <td>@o.Data</td>
+            <td>@o.Desconto</td>
+            <td>@o.Acrescimo</td>
+            <td>@o.Total</td>
+            <td>@o.CondicaoPagamento</td>
+            <td>@o.Vendedor</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+
+
+@await Html.PartialAsync("_Paginacao", Model, ViewData)

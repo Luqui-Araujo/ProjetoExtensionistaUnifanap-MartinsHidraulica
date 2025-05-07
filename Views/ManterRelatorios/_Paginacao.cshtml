@@ -1,0 +1,12 @@
+@model dynamic
+<nav>
+    <ul class="pagination justify-content-center">
+        @for(int i = 1; i <= Model.TotalPages; i++)
+        {
+            <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
+                <a href="javascript:;" class="page-link" onclick="loadRelatorio(@i)">@i</a>
+            </li>
+        }
+    </ul>
+</nav>
+
