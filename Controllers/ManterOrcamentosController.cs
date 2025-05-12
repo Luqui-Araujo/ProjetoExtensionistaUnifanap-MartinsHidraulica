@@ -165,7 +165,7 @@ public class ManterOrcamentosController : Controller
                     {
                         ImageData imageData = ImageDataFactory.Create(empresa.LogoEmpresa);
 
-                        Image logo = new Image(imageData).SetHeight(60).SetWidth(100).SetAutoScale(true)
+                        Image logo = new Image(imageData).SetHeight(70).SetWidth(120).SetAutoScale(true)
                             .SetHorizontalAlignment(HorizontalAlignment.CENTER);
                         
                         Cell imagemLogo = new Cell()
@@ -284,7 +284,8 @@ public class ManterOrcamentosController : Controller
                     foreach (var item in orcamento.Itens)
                     {
                         tableProdutos.AddCell(new Cell().Add(new Paragraph(item.Quantidade.ToString()))).SetFontSize(12);
-                        tableProdutos.AddCell(new Cell().Add(new Paragraph($"{item.NomeProduto} \n {item.Descricao} "))).SetFontSize(10);
+                        tableProdutos.AddCell(new Cell().Add(new Paragraph($"{item.NomeProduto} \n").SetFontSize(12)
+                            .Add(new Paragraph($"{item.Descricao}").SetFontSize(10))));
                         tableProdutos.AddCell(new Cell().Add(new Paragraph(item.PrecoUnitario.ToString("C")))).SetFontSize(12);
                         tableProdutos.AddCell(new Cell().Add(new Paragraph(item.Total.ToString("C")))).SetFontSize(12);
                     }

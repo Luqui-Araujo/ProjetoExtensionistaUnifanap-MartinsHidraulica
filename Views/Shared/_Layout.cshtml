@@ -15,6 +15,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>@ViewData["Title"] - MartinsHidraulica</title>
     <script type="importmap"></script>
+    
     <!-- Kit do Font Awesome -->
     <script src="https://kit.fontawesome.com/bb1054979b.js" crossorigin="anonymous"></script>
 
@@ -38,6 +39,9 @@
     @*toastr*@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    
+    
+
 </head>
 <body>
 <header>
@@ -139,6 +143,9 @@
 
 <!-- Scripts adicionais -->
 <script src="~/js/site.js" asp-append-version="true"></script>
+@*Chart.js*@
+<script src="~/lib/chartjs/dist/chart.umd.js"></script>
+
 
 @await RenderSectionAsync("Scripts", required: false)
 </body>

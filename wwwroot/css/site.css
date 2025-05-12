@@ -114,3 +114,10 @@ textarea {
   border: 1px solid var(--primaria) !important;
 }
 
+#pieChart {
+  background-color: white !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+

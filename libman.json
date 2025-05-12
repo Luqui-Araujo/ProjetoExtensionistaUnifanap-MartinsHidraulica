@@ -1,0 +1,10 @@
+{
+  "version": "3.0",
+  "defaultProvider": "unpkg",
+  "libraries": [
+    {
+      "library": "chart.js@4.4.9",
+      "destination": "wwwroot/lib/chartjs"
+    }
+  ]
+}

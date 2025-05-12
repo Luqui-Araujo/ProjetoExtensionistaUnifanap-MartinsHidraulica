@@ -1,5 +1,217 @@
 ﻿@{
     ViewData["Title"] = "Martins Hidraulica";
+    Layout = "_Layout";
 }
 
+<div class="mt-4 mb-4 text-center">
+    <h3>Dashboard</h3>
+</div>
 
+<div class="row text-center">
+    
+    <!-- Gráfico status Orçamentos -->
+    <div class="col-6 d-flex flex-row pt-4 pb-4">
+
+        <div class="d-flex flex-column">
+            <h5>Filtros</h5>
+            <div class="form-check">
+                <input class="form-check-input status-checkbox" type="checkbox" value="Aprovado" id="chkAprovado" checked>
+                <label class="form-check-label" for="chkAprovado">Aprovado</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input status-checkbox" type="checkbox" value="Pendente" id="chkPendente" checked>
+                <label class="form-check-label" for="chkPendente">Pendente</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input status-checkbox" type="checkbox" value="Reprovado" id="chkReprovado" checked>
+                <label class="form-check-label" for="chkReprovado">Reprovado</label>
+            </div>
+        </div>
+
+
+
+        <div class="chart-container"
+             style="position: relative; width:100%; height:400px; 
+             background:#fff; border-radius:0.5rem;">
+            <canvas id="pieChart"></canvas>
+        </div>
+
+
+        <div class="d-flex flex-column">
+
+            <h5>Contagem</h5>
+            <p>Aprovados: <strong><span id="countAprovados">0</span></strong></p>
+            <p>Pendentes: <strong><span id="countPendentes">0</span></strong></p>
+            <p>Reprovados: <strong><span id="countReprovados">0</span></strong></p>
+        </div>
+    </div>
+    
+    <!-- Gráfico orçamentos aprovados por vendedor -->
+    <div class="col-6 pt-4 pb-4">
+        <div class="chart-container"
+             style="position: relative; width:100%; height:400px; 
+            background:#fff; padding:1rem; border-radius:0.5rem;">
+            <canvas id="barChartVendedores"></canvas>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        $(document).ready(function() {
+            var ctx = document.getElementById('pieChart').getContext('2d');
+            var pieChart = null;
+            
+            var colorMap = {
+                "Aprovado": "#04ac4c",
+                "Pendente": "#f0ad4e",
+                "Reprovado": "#d9534f"
+            };
+            
+            // Gráfico de pizza - Status Orçamentos
+            function atualizarDashboard() {
+                // Obter os valores dos checkboxes
+                const selecionados = $('.status-checkbox:checked').map(function() {
+                    return $(this).val();
+                }).get();
+                
+                //Se nada estivar marcado limpa o gráfico
+                if (selecionados.length === 0) {
+                    if (pieChart) pieChart.destroy();
+                    $('#countAprovados, #countPendentes, #countReprovados').text(0);
+                    return;
+                }
+                
+                //Obter dados
+                $.ajax({
+                    url: '/Home/GetOrcamentosPorStatus/',
+                    type: 'GET',
+                    datatype: 'json',
+                    data: { status: 'todos'},
+                    success: function (data) {
+                        //Atualiza a contagem
+                        $('#countAprovados').text(data.aprovados);
+                        $('#countPendentes').text(data.pendentes);
+                        $('#countReprovados').text(data.reprovados);
+                        
+                        //Prepara as labels
+                        const labels = selecionados;
+                        const valores = selecionados.map(s => {
+                            if (s === 'Aprovado') return data.aprovados;
+                            if (s === 'Pendente') return data.pendentes;
+                            if (s === 'Reprovado') return data.reprovados;
+                        });
+                        const cores = selecionados.map(s => colorMap[s]);
+                        
+                        //Desenha o gráfico
+                        if (pieChart) {
+                            pieChart.destroy();
+                        }
+                        pieChart = new Chart(ctx, {
+                            type: 'pie',
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    data: valores,
+                                    backgroundColor: cores
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        position: 'bottom',
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Status Orçamentos',
+                                        font: {
+                                            size: 20
+                                        }
+                                    }
+                                },
+                                animation: {
+                                    animateScale: true,
+                                    animateRotate: true
+                                },
+                            }
+                        });
+                    },
+                    error: function () {
+                        toastr.show('Error');
+                    }
+                })
+            }
+
+            // dispara no clique em qualquer checkbox
+            $('.status-checkbox').on('change', atualizarDashboard);
+
+            // Gráfico de barras - Vendedores
+            const ctxBar = document
+                .getElementById('barChartVendedores')
+                .getContext('2d');
+
+            let barChartVendedores = null;
+
+            function carregarGraficoVendedores() {
+                // se já existir, destrói antes de criar de novo
+                if (barChartVendedores) {
+                    barChartVendedores.destroy();
+                    barChartVendedores = null;
+                }
+
+                $.ajax({
+                    url: '/Home/GetOrcamentosAprovadosPorVendedor',
+                    type: 'GET',
+                    dataType: 'json',      // atenção ao camelCase!
+                    success: function(dados) {
+                        const labels  = dados.map(d => d.vendedor);
+                        const valores = dados.map(d => d.totalAprovados);
+
+                        // cria o gráfico e guarda na variável local
+                        barChartVendedores = new Chart(ctxBar, {
+                            type: 'bar',
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    label: 'Orçamentos Aprovados',
+                                    data: valores,
+                                    backgroundColor: '#04ac4c'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    x: {
+                                        title: { display: true, text: 'Vendedor' }
+                                    },
+                                    y: {
+                                        beginAtZero: true,
+                                        title: { display: true, text: 'Quantidade' }
+                                    }
+                                },
+                                plugins: {
+                                    legend: { display: false },
+                                    title: {
+                                        display: true,
+                                        text: 'Orçamentos Aprovados por Vendedor',
+                                        font: { size: 18 }
+                                    }
+                                }
+                            }
+                        });
+                    },
+                    error: function() {
+                        toastr.error('Erro ao carregar gráfico de vendedores');
+                    }
+                });
+            }
+
+            // carga inicial
+            atualizarDashboard();
+            carregarGraficoVendedores();
+        })
+    </script>
+}
