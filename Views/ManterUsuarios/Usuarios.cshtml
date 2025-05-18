@@ -1,5 +1,6 @@
 ﻿@model Usuarios
 @using Microsoft.AspNetCore.Antiforgery
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @inject IAntiforgery Antiforgery
 
 @{
@@ -80,7 +81,15 @@
 
                     <div class="mb-3">
                         <label for="senha" class="form-label">Senha</label>
-                        <input type="password" name="senha" class="form-control"/>
+                        <div class="position-relative">
+                            <input type="password" name="senha" class="form-control pr-5" id="senha"/>
+                            <button type="button" id="toggleSenha"
+                                    class="btn btn-link position-absolute end-0 top-50 translate-middle-y me-2 p-0"
+                                    tabindex="-1"
+                                    style="z-index: 10;">
+                                <i id="iconSenha" class="fas fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -153,6 +162,47 @@
     </div>
 </div>
 
+<!-- Modal Alterar Senha -->
+<div class="modal fade" id="modalMudarSenha" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form asp-action="MudarSenhaAdmin" method="post" class="modal-content">
+            @Html.AntiForgeryToken()
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Alterar Senha do Usuário - <span id="nomeUsuarioModal">Usuário</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                
+                <button type="button" id="toggleSenhaModal" class="btn btn-outline-secondary" title="Mostrar Senhas">
+                    <i id="iconSenhaModal" class="fas fa-eye"></i>
+                </button>
+
+                <!-- Esse hidden vai receber o ID do usuário via JS -->
+                <input type="hidden" name="IdUsuario" id="adminUserId"/>
+
+                <div class="mb-3">
+                    <label for="novaSenha" class="form-label">Nova Senha</label>
+                    <input type="password" name="NovaSenha" id="NovaSenhaModal" class="form-control"/>
+                    <!-- Se quiser, exibe erros via JS ou servidor -->
+                    <span class="text-danger" data-valmsg-for="NovaSenha" data-valmsg-replace="true"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label for="confirmarSenha" class="form-label">Confirmar Senha</label>
+                    <input type="password" name="ConfirmarSenha" id="ConfirmarSenhaModal" class="form-control"/>
+                    <span class="text-danger" data-valmsg-for="ConfirmarSenha" data-valmsg-replace="true"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                <button type="submit" class="btn btn-warning">Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         //Token Antiforgerykey
@@ -185,6 +235,15 @@
                              onclick="InativarUsuario('${usuario.id}')"
                              title="Inativar">
                              <i class="fas fa-minus"></i>
+                        </button>
+                        <button type="button"
+                                class="btn btn-sm btn-warning alterarSenha"
+                                data-id="${usuario.id}"
+                                data-nome="${usuario.nome}"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalMudarSenha"
+                                title="Alterar Senha">
+                            <i class="fas fa-key"></i>
                         </button>
                     ` : `      
                         <!-- Botões para inativos -->
@@ -376,7 +435,60 @@
                 }
             })
         }
-        
 
+        // Mostrar/esconder senha
+        const toggleSenhaBtn = document.getElementById('toggleSenha');
+        const senhaInput = document.getElementById('senha');
+        const iconSenha = document.getElementById('iconSenha');
+
+        toggleSenhaBtn.addEventListener('click', () => {
+            const isPassword = senhaInput.type === 'password';
+            senhaInput.type = isPassword ? 'text' : 'password';
+            iconSenha.classList.toggle('fa-eye');
+            iconSenha.classList.toggle('fa-eye-slash');
+        });
+
+        // Quando clicar em um botão .alterarSenha
+        $(document).on('click', '.alterarSenha', function() {
+            var userId = $(this).data('id');
+            var nomeUsuario = $(this).data('nome');
+            
+            $('#adminUserId').val(userId);
+            $('#nomeUsuarioModal').text(nomeUsuario);
+
+            // Limpa os campos de senha ao abrir
+            $('#newPassword, #confirmPassword').val('');
+        });
+
+        // Mostrar toast de sucesso ou erro vindos do TempData ao alterar a senha
+        @if (TempData["Success"] != null)
+        {
+        <text>toastr.success('@TempData["Success"]');</text>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+        <text>toastr.error('@TempData["Error"]');</text>
+        }
+        
+        //Mostrar senhas
+        const toggleSenhaBtnModal = document.getElementById('toggleSenhaModal');
+        const iconSenhaModal = document.getElementById('iconSenhaModal');
+        
+        const camposDeSenhaModal = [
+            document.getElementById('NovaSenhaModal'),
+            document.getElementById('ConfirmarSenhaModal')
+        ];
+
+        toggleSenhaBtnModal.addEventListener('click', () => {
+            const mostraSenha = camposDeSenhaModal[0].type === 'text';
+
+            camposDeSenhaModal.forEach(campo => {
+                campo.type = mostraSenha ? 'password' : 'text';
+            });
+
+            iconSenhaModal.classList.toggle('fa-eye', mostraSenha);
+            iconSenhaModal.classList.toggle('fa-eye-slash', !mostraSenha);
+        });
     </script>
 }

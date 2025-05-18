@@ -139,6 +139,7 @@
         </div>
         <div class="col-5 mb-3">
             <label for="condicaoPagamento" class="form-label">Condição de pagamento:</label>
+            <span class="text-danger font-weight-bold">*</span>
             <select class="form-select" name="CondicaoPagamento" id="condicaoPagamento" required>
                 <option value="">Selecione um tipo de pagamento...</option>
                 @foreach (var condicao in Model.CondicoesPagamento)
@@ -178,6 +179,7 @@
         </div>
         <div class="col-6 col-md-3">
             <label class="form-label">Vendedor</label>
+            <span class="text-danger font-weight-bold">*</span>
             <select class="form-select" name="Vendedor" id="vendedor" required>
                 <option value="">Selecione um vendedor...</option>
                 @foreach (var vendedor in Model.Vendedores)
@@ -196,7 +198,7 @@
         </div>
     </div>
     <div class="text-end">
-        <button type="submit" class="btn btn-primary mt-1">
+        <button type="button" id="btnGerarOrcamento" class="btn btn-primary mt-1">
             <i class="fas fa-save"></i> Gerar PDF
         </button>
     </div>
@@ -569,21 +571,49 @@
         });
         
         //Valida se o cliente está preenchido com clienteId
-        $('#gerarOrcamentoForm').on('submit', function (e) {
-            const clienteId = $('#idCliente').val();   
+        $('#btnGerarOrcamento').on('click', function (e) {
+            e.preventDefault();
+
+            const form = $('#gerarOrcamentoForm');
+
+            // validação 
+            const clienteId = $('#idCliente').val();
             const identificacao = $('#identificacaoOrcamento').val();
-            
             if (!clienteId && (!identificacao || identificacao.trim() === "")) {
-                e.preventDefault();
                 toastr.error("Para clientes não cadastrados informe a identificação do orçamento.");
                 $('#identificacaoOrcamento').focus();
+                return;
             }
 
-            // Verificação se há pelo menos 1 produto
             if ($('.produtoItem').length === 0) {
-                e.preventDefault();
                 toastr.error("É necessário incluir ao menos um produto no orçamento.");
+                return;
             }
+
+            $.ajax({
+                url: form.attr('action'),
+                method: 'POST',
+                data: form.serialize(),
+                dataType: 'json',
+                success: function (resp) {
+                    if (!resp.success) {
+                        toastr.error(resp.message || "Erro ao salvar orçamento.");
+                        return;
+                    }
+
+                    // 1) Abre o PDF em nova aba para baixar
+                    window.open(`/ManterOrcamentos/Download?id=${resp.id}`, '_blank');
+
+                    // 2) Feedback e reload limpo
+                    toastr.success("Orçamento gerado com sucesso!");
+                    setTimeout(function () {
+                        window.location.href = '/ManterOrcamentos/NovoOrcamento';
+                    }, 800);
+                },
+                error: function (xhr) {
+                    toastr.error("Erro na requisição, verifique os campos obrigatórios.");
+                }
+            });
         });
         
         //Caso o usuário mude o nome do cliente, limpa o id

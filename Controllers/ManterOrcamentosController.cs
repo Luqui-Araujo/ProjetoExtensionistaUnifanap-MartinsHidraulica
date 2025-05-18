@@ -68,7 +68,8 @@ public class ManterOrcamentosController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     public IActionResult GerarOrcamento(OrcamentoViewModel viewModel)
-    {   
+    {
+        
         var empresa = _context.Empresas
             .FirstOrDefault();
         
@@ -119,7 +120,8 @@ public class ManterOrcamentosController : Controller
         _context.Orcamentos.Add(novoOrcamento);
         _context.SaveChanges();
 
-        return GerarPdfOrcamento(novoOrcamento.Id);
+        return Json(new { success = true, id = novoOrcamento.Id });
+        
     }
 
     public IActionResult Download(int id)
@@ -165,7 +167,7 @@ public class ManterOrcamentosController : Controller
                     {
                         ImageData imageData = ImageDataFactory.Create(empresa.LogoEmpresa);
 
-                        Image logo = new Image(imageData).SetHeight(70).SetWidth(120).SetAutoScale(true)
+                        Image logo = new Image(imageData).SetHeight(60).SetWidth(160).SetAutoScale(true)
                             .SetHorizontalAlignment(HorizontalAlignment.CENTER);
                         
                         Cell imagemLogo = new Cell()

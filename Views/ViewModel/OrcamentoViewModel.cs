@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using MartinsHidraulica.Models;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace MartinsHidraulica.Views.ViewModel;
 
@@ -38,6 +39,7 @@ public class OrcamentoViewModel
     //Lista de vendedores e condições de pagamento
     public List<Vendedores> Vendedores { get; set; }
     public List<TiposPagamento> CondicoesPagamento { get; set; }
+    [Required(ErrorMessage = "A condição de pagamento é obrigatória")]
     public string CondicaoPagamento { get; set; }
     
     //Selecionados
@@ -55,6 +57,7 @@ public class OrcamentoViewModel
     
     //Informações
     public string? Observacao { get; set; }
+    [Required(ErrorMessage = "Selecione um vendedor")]
     public string Vendedor { get; set; }
     public bool? Aprovado { get; set; }
     public string? Identificacao { get; set; }

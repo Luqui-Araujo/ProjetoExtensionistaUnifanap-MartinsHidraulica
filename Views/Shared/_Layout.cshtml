@@ -16,6 +16,9 @@
     <title>@ViewData["Title"] - MartinsHidraulica</title>
     <script type="importmap"></script>
     
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <!-- Kit do Font Awesome -->
     <script src="https://kit.fontawesome.com/bb1054979b.js" crossorigin="anonymous"></script>
 
@@ -40,8 +43,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     
-    
-
 </head>
 <body>
 <header>
@@ -69,14 +70,21 @@
                     Usuário: @(currentUser?.Nome ?? "Usuário")
                 </span>
             </div>
+            
+            <div class="d-inline m-2">
+                <a asp-controller="ManterUsuarios" asp-action="MudarSenha"
+                   class="btn btn-outline-secondary me-2" title="Alterar Senha">
+                    <i class="fas fa-lock"></i>
+                </a>
 
-            <form asp-controller="ManterUsuarios" asp-action="Logout" method="POST"
-                  class="d-inline m-2">
-                @Html.AntiForgeryToken()
-                <button type="submit" class="btn btn-primary" title="Sair">
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
-            </form>
+                <form asp-controller="ManterUsuarios" asp-action="Logout" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-primary" title="Sair">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </form>
+            </div>
+            
         </div>
         
 

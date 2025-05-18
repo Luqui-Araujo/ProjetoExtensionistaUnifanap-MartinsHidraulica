@@ -36,6 +36,12 @@ public class ManterUsuariosController : Controller
         return View();
     }
 
+    [HttpGet]
+    public IActionResult MudarSenha()
+    {
+        return View(new MudarSenhaViewModel());
+    }
+
     //Post Login
     [HttpPost]
     [AllowAnonymous]
@@ -233,7 +239,71 @@ public class ManterUsuariosController : Controller
 
         return View("Usuarios");
     }
+    
+    //Post o mudar senha usuário
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> MudarSenha(MudarSenhaViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+        
+        var usuario = await _userManager.GetUserAsync(User);
+        
+        if (usuario == null)
+        {
+            //Se bugar e não encontrar o usuário, redireciona para o login
+            return RedirectToAction("Login", "ManterUsuarios");
+        }
+        
+        var result = await _userManager.ChangePasswordAsync(usuario, model.SenhaAtual, model.NovaSenha);
 
+        if (!result.Succeeded)
+        {
+            foreach (var error in result.Errors)
+                ModelState.AddModelError("", error.Description);
+            return View(model);
+        }
+        
+        //Desloga após mudar a senha
+        await _signInManager.SignOutAsync();
+        return RedirectToAction("Login", "ManterUsuarios");
+    }
+    
+    //Post o mudar senha admin
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> MudarSenhaAdmin(MudarSenhaAdminViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return RedirectToAction("Index", "Home");
+        }
+        
+        var usuario = await _userManager.FindByIdAsync(model.IdUsuario);
+        if (usuario == null)
+        {
+            TempData["Error"] = "Usuário não encontrado";
+            return RedirectToAction("Usuarios");
+        }
+        
+        //Tem que gerar um token antes de resetar
+        var token = await _userManager.GeneratePasswordResetTokenAsync(usuario);
+        var result = await _userManager.ResetPasswordAsync(usuario, token, model.NovaSenha);
+        if (!result.Succeeded)
+        {
+            TempData["Error"] = string.Join(" / ", result.Errors.Select(e => e.Description));
+        }
+        else
+        {
+            @TempData["Success"] = "Senha alterada com sucesso!";
+        }
+        
+        return RedirectToAction("Usuarios");
+    }
+    
     public IActionResult ObterDepartamentos(Departamentos departamentos)
     {
         var departamentosEmpresa = _context.Departamentos

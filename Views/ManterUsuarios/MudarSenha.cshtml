@@ -1,0 +1,66 @@
+@model MartinsHidraulica.Views.ViewModel.MudarSenhaViewModel
+
+@{
+    ViewBag.Title = "Alterar Senha";
+    Layout = "_Layout";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="d-flex flex-row justify-content-between">
+            <h3>Alterar Senha</h3>
+            <button type="button" id="toggleSenha" class="btn btn-outline-secondary" title="Mostrar Senha">
+                <i id="iconSenha" class="fas fa-eye"></i>
+            </button>
+        </div>
+        <form asp-action="MudarSenha" method="post">
+            @Html.AntiForgeryToken()
+            <div class="mb-3">
+                <label asp-for="SenhaAtual" class="form-label"></label>
+                <input asp-for="SenhaAtual" class="form-control" id="senhaAtual"/>
+                <span asp-validation-for="SenhaAtual" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="NovaSenha" class="form-label"></label>
+                <input asp-for="NovaSenha" class="form-control" id="senhaNova"/>
+                <span asp-validation-for="NovaSenha" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="ConfirmarSenha" class="form-label"></label>
+                <input asp-for="ConfirmarSenha" class="form-control" id="confirmarSenha"/>
+                <span asp-validation-for="ConfirmarSenha" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-success">Atualizar</button>
+            <a asp-action="Index" asp-controller="Home" class="btn btn-secondary ms-2">Cancelar</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        // Mostrar/esconder senha
+        const toggleSenhaBtn = document.getElementById('toggleSenha');
+        const iconSenha = document.getElementById('iconSenha');
+        
+        //Pega todos os campos de senha
+        const camposDeSenha = [
+            document.getElementById('senhaAtual'),
+            document.getElementById('senhaNova'),
+            document.getElementById('confirmarSenha')
+        ];
+            
+
+        toggleSenhaBtn.addEventListener('click', () => {
+            const mostraSenha = camposDeSenha[0].type === 'text';
+            
+            camposDeSenha.forEach(campo => {
+                campo.type = mostraSenha ? 'password' : 'text';
+            });
+            
+            iconSenha.classList.toggle('fa-eye', mostraSenha);
+            iconSenha.classList.toggle('fa-eye-slash', !mostraSenha);
+        });
+    </script>
+}
