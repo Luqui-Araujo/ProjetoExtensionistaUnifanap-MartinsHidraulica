@@ -1,7 +1,8 @@
 # 💻 Sistema de Orçamentos - Martins Hidráulica Agriculture
 
-Este e um sistema web desenvolvido como projeto extensionista acadêmico na faculdade UniFANAP.
-O sistema foi criado para auxiliar a empresa Martins Hidráulica Agriculture, especializada em manutenção de máquinas agrícolas, na geração e gestão de orçamentos, serviços e clientes.
+Este e um sistema web desenvolvido como projeto extensionista acadêmico na faculdade UniFANAP. 
+
+O sistema foi criado para auxiliar a empresa Martins Hidráulica Agriculture, na geração e gestão de orçamentos, serviços e clientes.
 
 ## 🎯 Objetivo do Projeto
 
@@ -143,7 +144,7 @@ Senha: SenhaForte123!
 
 🧠 Aprendizados
 
-- Este projeto me permitiu aplicar e consolidar diversos conceitos como:
+- Este projeto permitiu aplicar e consolidar diversos conceitos como:
   
 Estrutura MVC e boas práticas com C#
 Criação de componentes reutilizáveis com Razor
